@@ -5,15 +5,16 @@
 <?import javafx.scene.image.*?>
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.paint.*?>
 <?import javafx.scene.shape.*?>
 <?import javafx.scene.text.*?>
 
-<AnchorPane prefHeight="363.0" prefWidth="550.0" style=" -fx-background-color: #FFFFFF;&#10;-fx-border-color: #e2e2e2;" xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/2.2" fx:controller="application.MainController">
+<AnchorPane minHeight="372.0" minWidth="535.4141693115234" prefHeight="372.0" prefWidth="535.4141693115234" style=" -fx-background-color: #FFFFFF;&#10;-fx-border-color: #e2e2e2;" xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/2.2" fx:controller="application.MainController">
   <!-- TODO Add Nodes -->
   <children>
     <ImageView fitHeight="73.54000091552734" fitWidth="126.7931032556002" layoutX="14.0" layoutY="14.0" pickOnBounds="true" preserveRatio="true">
       <image>
-        <Image url="@../../../../Downloads/2.png" />
+        <Image url="@../../asset/2.png" />
       </image>
     </ImageView>
     <Pane layoutX="28.0" layoutY="110.0" prefHeight="37.0" prefWidth="493.0">
@@ -21,7 +22,7 @@
         <TextField fx:id="pathTextField" layoutX="1.0" layoutY="0.0" prefHeight="36.000099999997474" prefWidth="430.0" promptText="Đường dẫn tới đề thi" style="-fx-background-radius:3px 0px 0px 3px;&#10;-fx-padding: 10 50 10 20;" text="" />
         <ImageView fx:id="openFileButton" fitHeight="30.0" fitWidth="50.0" layoutX="389.0" layoutY="3.0" onMouseClicked="#chooseFile" pickOnBounds="true" preserveRatio="true">
           <image>
-            <Image url="@../../../../Downloads/20151012_561bae9e3bd57.png" />
+            <Image url="@../../asset/20151012_561bae9e3bd57.png" />
           </image>
         </ImageView>
         <Button fx:id="checkFileButton" layoutX="428.0" layoutY="0.0" mnemonicParsing="false" onAction="#checkButtonClick" prefHeight="36.0" style="-fx-background-radius:0px 3px 3px 0px;" text="Kiểm tra" />
@@ -31,10 +32,10 @@
       <children>
         <ImageView fx:id="statusInfoIcon" fitHeight="15.0" fitWidth="15.0" layoutX="7.0" layoutY="8.0" pickOnBounds="true" preserveRatio="true">
           <image>
-            <Image url="@../../../../Downloads/ok-xxl.png" />
+            <Image url="@../../asset/ok-xxl.png" />
           </image>
         </ImageView>
-        <Label fx:id="statusInfo" layoutX="33.0" layoutY="7.0" prefWidth="352.0" text="Success: Đề thi hợp lệ" textFill="WHITE" />
+        <Label fx:id="statusInfo" layoutX="33.0" layoutY="7.0" prefWidth="352.0" text="Success: Hoàn tất phân tích dữ liệu" textFill="WHITE" />
         <Hyperlink fx:id="infoDetail" layoutX="411.0" layoutY="3.0" onAction="#showCheckFileForm" text="Xem chi tiết" textFill="WHITE">
           <font>
             <Font name="System Italic" size="12.0" />
@@ -44,7 +45,7 @@
     </Pane>
     <Pane disable="false" layoutX="30.0" layoutY="197.0" prefHeight="143.0" prefWidth="492.0">
       <children>
-        <TextField layoutX="112.0" layoutY="29.0" prefWidth="150.2069091796875" />
+        <TextField id="number" fx:id="numberTextField" layoutX="112.0" layoutY="29.0" prefWidth="150.2069091796875" />
         <Label layoutX="14.0" layoutY="32.0" text="Số lượng đề thi:" />
         <Label layoutX="14.0" layoutY="73.0" text="Thứ tự đề thi:" />
         <RadioButton fx:id="letterRadioButton" layoutX="112.0" layoutY="73.0" mnemonicParsing="false" text="A,B,C,...">
@@ -53,9 +54,27 @@
           </toggleGroup>
         </RadioButton>
         <RadioButton fx:id="numberRadioButton" layoutX="199.0" layoutY="73.0" mnemonicParsing="false" text="1,2,3,..." toggleGroup="$type" />
-        <Button layoutX="394.0" layoutY="91.0" mnemonicParsing="false" prefHeight="46.54010854491935" prefWidth="83.99990000000253" text="Trộn đề thi" />
-        <Line endX="389.0" endY="0.0" fill="#bfbfbf" layoutX="102.0" layoutY="1.0" startX="-100.0" stroke="#9f9f9f" style="-fx-background-color:#e2e2e2;" />
+        <Button fx:id="exportExamButton" layoutX="394.0" layoutY="91.0" mnemonicParsing="false" onAction="#exportRandomizeExam" prefHeight="46.54010854491935" prefWidth="83.99990000000253" text="Trộn đề thi" />
+        <Line endX="389.0" endY="0.0" layoutX="102.0" layoutY="1.0" startX="-100.0" style="-fx-background-color:#e2e2e2;">
+          <fill>
+            <Color blue="0.749" green="0.749" red="0.749" fx:id="x1" />
+          </fill>
+          <stroke>
+            <Color blue="0.624" green="0.624" red="0.624" fx:id="x2" />
+          </stroke>
+        </Line>
       </children>
     </Pane>
+    <Line endX="398.0" endY="0.0" fill="$x1" layoutX="128.0" layoutY="351.0" startX="-99.0" startY="3.0" stroke="$x2" style="-fx-background-color:#ededed;" />
+    <Label layoutX="406.0" layoutY="356.0" text="ĐỒ ÁN CHUYÊN NGÀNH A" textFill="#bfbfbf">
+      <font>
+        <Font name="System Italic" size="10.0" />
+      </font>
+    </Label>
+    <Button fx:id="helpButton" layoutX="488.0" layoutY="8.0" mnemonicParsing="false" prefHeight="30.0" prefWidth="30.0" style="-fx-background-color:white;&#10;-fx-border-color:#e0e0e0;&#10;-fx-border-radius:30px;" text="?" textFill="GREY">
+      <font>
+        <Font name="System Bold" size="14.0" />
+      </font>
+    </Button>
   </children>
 </AnchorPane>

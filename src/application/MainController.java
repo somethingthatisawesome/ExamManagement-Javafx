@@ -23,10 +23,15 @@ import javafx.stage.FileChooser;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
-import bll.BLO;;
+import bll.BLO;
+import ell.Gobal;;
 public class MainController implements Initializable {
 	String filePath = "";
 	BLO blo = new BLO();
+	@FXML
+	private TextField numberTextField;
+	@FXML
+	private Button helpButton;
 	@FXML
 	private ImageView openFileButton;
 	@FXML
@@ -48,12 +53,14 @@ public class MainController implements Initializable {
 		// TODO Auto-generated method stub
 		statusPane.setVisible(false);
 		letterRadioButton.setSelected(true);
+		helpButton.setTooltip(new Tooltip("Trợ giúp"));
 		
 	}
 	public void chooseFile()
 	{
 		 FileChooser chooser = new FileChooser();
 		   chooser.setTitle("Open File");
+		   chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Word Document (*.docx)", "*.docx"));
 		   String path = chooser.showOpenDialog(new Stage()).getAbsolutePath();
 		   //System.out.println(path);
 		   
@@ -111,6 +118,17 @@ public class MainController implements Initializable {
 			showErrorStatus();
 		};
 	}
+	public void exportRandomizeExam()
+	{
+		File file = new File(filePath);
+		FileChooser chooser = new FileChooser();
+		chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Word Document (*.docx)", "*.docx"));
+		//chooser.setInitialDirectory(file);
+		String path = chooser.showSaveDialog(new Stage()).getAbsolutePath();
+		path=path.substring(0,path.lastIndexOf("."));
+		blo.exportExams(Gobal.paragraph,path,Integer.parseInt(numberTextField.getText()),letterRadioButton.isSelected());
+		//blo.exportRandomizeExam(Gobal.paragraph,path);
+	}
 	private void showSuccessStatus()
 	{
 		statusPane.setVisible(true);
@@ -146,4 +164,5 @@ public class MainController implements Initializable {
 			  
 		  }
 	}
+	
 }

@@ -20,20 +20,20 @@
     </Pane>
     <Pane layoutX="299.0" layoutY="36.0" prefHeight="327.0" prefWidth="225.0">
       <children>
-        <RadioButton fx:id="questionRadioButton" layoutX="14.0" layoutY="34.0" mnemonicParsing="false" text="Câu hỏi">
+        <RadioButton fx:id="questionRadioButton" layoutX="14.0" layoutY="34.0" mnemonicParsing="false" onMouseClicked="#isQuestionClicked" text="Câu hỏi">
           <toggleGroup>
             <ToggleGroup fx:id="prgroup" />
           </toggleGroup>
         </RadioButton>
-        <RadioButton fx:id="answerRadioButton" layoutX="14.0" layoutY="106.0" mnemonicParsing="false" text="Câu trà lời" toggleGroup="$prgroup" />
-        <CheckBox fx:id="isStaticQuestionCheckBox" layoutX="34.0" layoutY="64.0" mnemonicParsing="false" text="Không được trộn" />
+        <RadioButton fx:id="answerRadioButton" layoutX="14.0" layoutY="106.0" mnemonicParsing="false" onMouseClicked="#isAnswerClicked" text="Câu trà lời" toggleGroup="$prgroup" />
+        <CheckBox fx:id="isStaticQuestionCheckBox" layoutX="34.0" layoutY="64.0" mnemonicParsing="false" onMouseClicked="#isStaticChecked" text="Không được trộn" />
         <Label layoutX="2.0" layoutY="6.0" prefWidth="225.0" text="Cài đặt" />
         <Pane layoutX="11.0" layoutY="127.0" prefHeight="200.0" prefWidth="212.0">
           <children>
             <Label layoutX="20.0" layoutY="33.0" prefHeight="21.0" prefWidth="180.0" text="Câu trả lời cho:" />
             <Button id="changeQuestionButton" layoutX="74.0" layoutY="176.0" mnemonicParsing="false" text="Chọn câu hỏi khác" />
             <TextArea fx:id="questionTextArea" disable="false" editable="false" layoutX="5.0" layoutY="63.0" prefHeight="101.0" prefWidth="202.00002207031503" wrapText="true" />
-            <CheckBox id="isStaticQuestionCheckBox" layoutX="23.0" layoutY="6.0" mnemonicParsing="false" text="Đáp án đúng" />
+            <CheckBox id="isStaticQuestionCheckBox" fx:id="isCorrectCheckBox" layoutX="23.0" layoutY="6.0" mnemonicParsing="false" onMouseClicked="#isCorrectChecked" text="Đáp án đúng" />
           </children>
         </Pane>
       </children>
