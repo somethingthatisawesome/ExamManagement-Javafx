@@ -1,5 +1,6 @@
 package application;
 
+import java.io.EOFException;
 import java.io.File;
 import java.net.URL;
 import java.util.ResourceBundle;
@@ -23,10 +24,17 @@ import javafx.stage.FileChooser;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
-import bll.BLO;;
+import bll.BLO;
+import ell.Gobal;;
 public class MainController implements Initializable {
 	String filePath = "";
 	BLO blo = new BLO();
+	@FXML
+	private ImageView logoImageView;
+	@FXML
+	private TextField numberTextField;
+	@FXML
+	private Button helpButton;
 	@FXML
 	private ImageView openFileButton;
 	@FXML
@@ -48,12 +56,13 @@ public class MainController implements Initializable {
 		// TODO Auto-generated method stub
 		statusPane.setVisible(false);
 		letterRadioButton.setSelected(true);
-		
+		helpButton.setTooltip(new Tooltip("Trợ giúp"));
 	}
 	public void chooseFile()
 	{
 		 FileChooser chooser = new FileChooser();
 		   chooser.setTitle("Open File");
+		   chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Word Document (*.docx)", "*.docx"));
 		   String path = chooser.showOpenDialog(new Stage()).getAbsolutePath();
 		   //System.out.println(path);
 		   
@@ -96,13 +105,30 @@ public class MainController implements Initializable {
 			alert.showAndWait();
 			return;
 		}
+		
 		this.filePath = filepath;
-		int fileStatus = blo.readParagraph(filePath);
+		Gobal.path = this.filePath;
+		Gobal.status=0;
+		try
+		{
+		Gobal.status = blo.readParagraph(Gobal.path);
+		}
+		catch(Exception e)
+		{
+			Gobal.status=2;
+			Gobal.statusInfo=e.toString();
+			showErrorStatus();
+			
+			return;
+		}
+		Gobal.statusInfo="";
+		showProgressForm();
+		int fileStatus = Gobal.status;
 		if(fileStatus ==0)
 		{
 			showSuccessStatus();
 		};
-		if(fileStatus==1)
+		if(fileStatus ==1)
 		{
 			showWarningStatus();
 		};
@@ -111,23 +137,93 @@ public class MainController implements Initializable {
 			showErrorStatus();
 		};
 	}
+	public void exportRandomizeExam()
+	{
+		if(Gobal.paragraph==null)
+		{
+			Alert alert = new Alert(AlertType.WARNING);
+			alert.setTitle("");
+			alert.setHeaderText("Vui lòng chọn kiểm tra tập tin ");
+			alert.setContentText("Tập tin chưa được kiểm tra");
+			alert.showAndWait();
+			return;
+		}
+		if(Gobal.status==2)
+		{
+			Alert alert = new Alert(AlertType.WARNING);
+			alert.setTitle("");
+			alert.setHeaderText("Cấu trúc đề thi không đúng");
+			alert.setContentText("Cấu trúc đề thi không đúng, xin vui lòng kiểm tra lại");
+			alert.showAndWait();
+			return;
+		}
+		File file = new File(this.filePath);
+		FileChooser chooser = new FileChooser();
+		chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Word Document (*.docx)", "*.docx"));
+		//chooser.setInitialDirectory(file);
+		String path = chooser.showSaveDialog(new Stage()).getAbsolutePath();
+		path=path.substring(0,path.lastIndexOf("."));
+		blo.exportExams(Gobal.paragraph,path,Integer.parseInt(numberTextField.getText()),letterRadioButton.isSelected());
+		//blo.exportRandomizeExam(Gobal.paragraph,path);
+	}
 	private void showSuccessStatus()
 	{
+		statusPane.setStyle("-fx-background-color:#4FC064;");
+		statusInfo.setText("Success: Hoàn tất phân tích dữ liệu");
 		statusPane.setVisible(true);
 	}
 	private void showErrorStatus()
 	{
-		statusPane.setStyle("-fx-background-color:#EC7063;");
+		statusPane.setStyle("-fx-background-color:#D64A49;");
 		statusInfo.setText("Error: Đề thi không hợp lệ");
 		statusPane.setVisible(true);
 	}
 	private void showWarningStatus()
 	{
-		statusPane.setStyle("-fx-background-color:#F4D313;");
+		statusPane.setStyle("-fx-background-color:#EBC058;");
 		statusInfo.setText("Warning: Cấu trúc đề thi có thể bị sai sót");
 		statusPane.setVisible(true);
 	}
-	
+	public void showStatusForm()
+	{
+		 try{
+	            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("FileStatusLayout.fxml"));
+	            Parent root = (Parent) fxmlLoader.load();
+	            Stage stage = new Stage();
+	            stage.initModality(Modality.APPLICATION_MODAL);
+	            //stage.initStyle(StageStyle.UNDECORATED);
+	            stage.setResizable(false);
+	            stage.setTitle("Kiểm tra");
+	            stage.setScene(new Scene(root));  
+	            stage.show();
+	            
+	          
+	          }
+		  catch(Exception e)
+		  {
+			  
+		  }
+	}
+	public void showProgressForm()
+	{
+		 try{
+	            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("FileStatusLayout.fxml"));
+	            Parent root = (Parent) fxmlLoader.load();
+	            Stage stage = new Stage();
+	            stage.initModality(Modality.APPLICATION_MODAL);
+	            //stage.initStyle(StageStyle.UNDECORATED);
+	            stage.setResizable(false);
+	            stage.setTitle("Kiểm tra");
+	            stage.setScene(new Scene(root));  
+	            
+	            
+	          
+	          }
+		  catch(Exception e)
+		  {
+			  
+		  }
+	}
 	public void showCheckFileForm()
 	{
 		  try{
@@ -146,4 +242,5 @@ public class MainController implements Initializable {
 			  
 		  }
 	}
+	
 }

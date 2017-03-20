@@ -19,11 +19,12 @@ public class Main extends Application {
 			scene.getStylesheets().add(getClass().getResource("application.css").toExternalForm());
 			primaryStage.setScene(scene);
 			primaryStage.show();*/
-			
+			Main.class.getResource("/asset");
 	           Parent root = FXMLLoader.load(getClass()
 	                   .getResource("MainLayout.fxml"));
 	           //primaryStage.initStyle(StageStyle.UNDECORATED);
 	           primaryStage.setScene(new Scene(root));
+	           primaryStage.setTitle("Phần mềm soạn đề thi trắc nghiệm");
 	           primaryStage.setResizable(false);
 	           primaryStage.show();
 	           

@@ -19,7 +19,7 @@ public class Main extends Application {
 			scene.getStylesheets().add(getClass().getResource("application.css").toExternalForm());
 			primaryStage.setScene(scene);
 			primaryStage.show();*/
-			
+			Main.class.getResource("/asset");
 	           Parent root = FXMLLoader.load(getClass()
 	                   .getResource("MainLayout.fxml"));
 	           //primaryStage.initStyle(StageStyle.UNDECORATED);

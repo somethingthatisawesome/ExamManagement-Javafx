@@ -30,6 +30,7 @@ public class PragraphController implements Initializable {
 		// TODO Auto-generated method stub
 		for(Paragraph para:Gobal.paragraph)
 		{
+			
 			paragraphListView.getItems().add(para.value.getText());
 		
 		}

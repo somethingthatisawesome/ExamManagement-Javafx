@@ -1,5 +1,6 @@
 package application;
 
+import java.io.EOFException;
 import java.io.File;
 import java.net.URL;
 import java.util.ResourceBundle;
@@ -12,6 +13,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
+import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
 import javafx.scene.control.RadioButton;
 import javafx.scene.control.TextField;
@@ -27,7 +29,12 @@ import bll.BLO;
 import ell.Gobal;;
 public class MainController implements Initializable {
 	String filePath = "";
+	String parentfilePath="";
 	BLO blo = new BLO();
+	@FXML
+	private Hyperlink infoDetail;
+	@FXML
+	private ImageView logoImageView;
 	@FXML
 	private TextField numberTextField;
 	@FXML
@@ -54,7 +61,6 @@ public class MainController implements Initializable {
 		statusPane.setVisible(false);
 		letterRadioButton.setSelected(true);
 		helpButton.setTooltip(new Tooltip("Trợ giúp"));
-		
 	}
 	public void chooseFile()
 	{
@@ -65,6 +71,7 @@ public class MainController implements Initializable {
 		   //System.out.println(path);
 		   
 		   pathTextField.setText(path);
+		   statusPane.setVisible(false);
 	}
 	public void beginButtonClick()
 	{
@@ -73,8 +80,11 @@ public class MainController implements Initializable {
 	public void checkButtonClick()
 	{
 		//check file
+		statusPane.setVisible(false);
 		String filepath  = pathTextField.getText();
 		File f = new File(filepath);
+		parentfilePath = f.getParent();
+		System.out.println(parentfilePath);
 		if(f.exists() && !f.isDirectory()) { 
 		    System.out.println("file exist");
 		}
@@ -103,49 +113,149 @@ public class MainController implements Initializable {
 			alert.showAndWait();
 			return;
 		}
+		
 		this.filePath = filepath;
-		int fileStatus = blo.readParagraph(filePath);
+		Gobal.path = this.filePath;
+		Gobal.status=0;
+		try
+		{
+		Gobal.status = blo.readParagraph(Gobal.path);
+		}
+		catch(Exception e)
+		{
+			Gobal.status=2;
+			Gobal.statusInfo=e.toString();
+			showErrorStatus(Gobal.statusInfo);
+			
+			return;
+		}
+		Gobal.statusInfo="";
+		showProgressForm();
+		int fileStatus = Gobal.status;
 		if(fileStatus ==0)
 		{
 			showSuccessStatus();
 		};
-		if(fileStatus==1)
+		if(fileStatus ==1)
 		{
 			showWarningStatus();
 		};
 		if(fileStatus==2)
 		{
-			showErrorStatus();
+			showErrorStatus(Gobal.statusInfo);
 		};
 	}
 	public void exportRandomizeExam()
 	{
-		File file = new File(filePath);
-		FileChooser chooser = new FileChooser();
-		chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Word Document (*.docx)", "*.docx"));
-		//chooser.setInitialDirectory(file);
-		String path = chooser.showSaveDialog(new Stage()).getAbsolutePath();
-		path=path.substring(0,path.lastIndexOf("."));
-		blo.exportExams(Gobal.paragraph,path,Integer.parseInt(numberTextField.getText()),letterRadioButton.isSelected());
-		//blo.exportRandomizeExam(Gobal.paragraph,path);
+		if(Gobal.paragraph==null)
+		{
+			Alert alert = new Alert(AlertType.WARNING);
+			alert.setTitle("");
+			alert.setHeaderText("Vui lòng chọn kiểm tra tập tin ");
+			alert.setContentText("Tập tin chưa được kiểm tra");
+			alert.showAndWait();
+			return;
+		}
+		if(Gobal.status==2)
+		{
+			Alert alert = new Alert(AlertType.WARNING);
+			alert.setTitle("");
+			alert.setHeaderText("Cấu trúc đề thi không đúng");
+			alert.setContentText("Cấu trúc đề thi không đúng, xin vui lòng kiểm tra lại");
+			alert.showAndWait();
+			return;
+		}
+
+		try {
+			/*
+			File file = new File(this.filePath);
+			FileChooser chooser = new FileChooser();
+			chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Word Document (*.docx)", "*.docx"));
+			//chooser.setInitialDirectory(file);
+			String path = chooser.showSaveDialog(new Stage()).getAbsolutePath();
+			path=path.substring(0,path.lastIndexOf("."));*/
+			String exportpath = this.filePath.substring(0, this.filePath.lastIndexOf("."));
+			blo.exportExams(Gobal.paragraph,exportpath,Integer.parseInt(numberTextField.getText()),letterRadioButton.isSelected());
+			//blo.exportRandomizeExam(Gobal.paragraph,path);
+		} catch (NumberFormatException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		Alert alert = new Alert(AlertType.CONFIRMATION);
+		alert.setTitle("");
+		alert.setHeaderText("Hoàn tất");
+		alert.setContentText("Đã xuất đề thi tại "+parentfilePath);
+		alert.showAndWait();
+		return;
 	}
 	private void showSuccessStatus()
 	{
+		statusPane.setStyle("-fx-background-color:#4FC064;");
+		statusInfo.setText("Success: Hoàn tất phân tích dữ liệu");
+		infoDetail.setVisible(false);
 		statusPane.setVisible(true);
 	}
-	private void showErrorStatus()
+	private void showErrorStatus(String error)
 	{
-		statusPane.setStyle("-fx-background-color:#EC7063;");
-		statusInfo.setText("Error: Đề thi không hợp lệ");
+		statusPane.setStyle("-fx-background-color:#D64A49;");
+		statusInfo.setText("Error: "+error);
+		infoDetail.setVisible(false);
 		statusPane.setVisible(true);
 	}
 	private void showWarningStatus()
 	{
-		statusPane.setStyle("-fx-background-color:#F4D313;");
-		statusInfo.setText("Warning: Cấu trúc đề thi có thể bị sai sót");
+		statusPane.setStyle("-fx-background-color:#EBC058;");
+		statusInfo.setText("Warning: Cấu trúc đề thi bị sai sót");
+		infoDetail.setVisible(true);
 		statusPane.setVisible(true);
 	}
-	
+	//TODO Xem chi tiết
+	public void showStatusForm()
+	{
+		/*
+		 try{
+			 
+	            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("FileStatusLayout.fxml"));
+	            Parent root = (Parent) fxmlLoader.load();
+	            Stage stage = new Stage();
+	            stage.initModality(Modality.APPLICATION_MODAL);
+	            //stage.initStyle(StageStyle.UNDECORATED);
+	            stage.setResizable(false);
+	            stage.setTitle("Kiểm tra");
+	            stage.setScene(new Scene(root));  
+	            stage.show();
+	            
+	          
+	          }
+		  catch(Exception e)
+		  {
+			  
+		  }*/
+		
+		String path = parentfilePath;
+		System.out.println(path);
+		blo.exportTempExam(Gobal.paragraph, parentfilePath);
+		blo.openTempExam(path);
+	}
+	public void showProgressForm()
+	{
+		 try{
+	            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("FileStatusLayout.fxml"));
+	            Parent root = (Parent) fxmlLoader.load();
+	            Stage stage = new Stage();
+	            stage.initModality(Modality.APPLICATION_MODAL);
+	            //stage.initStyle(StageStyle.UNDECORATED);
+	            stage.setResizable(false);
+	            stage.setTitle("Kiểm tra");
+	            stage.setScene(new Scene(root));  
+	            
+	          
+	          }
+		  catch(Exception e)
+		  {
+			  
+		  }
+	}
 	public void showCheckFileForm()
 	{
 		  try{

@@ -88,11 +88,6 @@
 		<mkdir dir="project" />
 		<copy todir="project">
 			<fileset dir="C:\Users\trihm\workspace\ExamManagement">
-				<include name="asset/**" />
-			</fileset>
-		</copy>
-		<copy todir="project">
-			<fileset dir="C:\Users\trihm\workspace\ExamManagement">
 				<include name="src/**" />
 			</fileset>
 		</copy>
@@ -132,11 +127,6 @@
 				<include name="**/*"/>
 			</fileset>
 		</copy>
-		<copy todir="build/src">
-			<fileset dir="project/asset">
-				<include name="**/*"/>
-			</fileset>
-		</copy>
 	
 		<javac includeantruntime="false" source="1.7" target="1.7" srcdir="build/src" destdir="build/classes" encoding="UTF-8">
 			<classpath>
@@ -149,9 +139,6 @@
 		<!-- Copy over none Java-Files -->
 		<copy todir="build/classes">
 		<fileset dir="project/src">
-			<exclude name="**/*.java"/>
-		</fileset>
-		<fileset dir="project/asset">
 			<exclude name="**/*.java"/>
 		</fileset>
 		</copy>
@@ -175,7 +162,6 @@
 		<fx:resources id="appRes">
 			<fx:fileset dir="dist" includes="ExamManagement.jar"/>
 			<fx:fileset dir="dist" includes="libs/*"/>
-			<fx:fileset dir="dist" includes="asset/**"/>
 		</fx:resources>
 	
 		<fx:application id="fxApplication"
@@ -210,7 +196,7 @@
 			includeDT="false"
 			offlineAllowed="true"
 			outdir="${basedir}/deploy"
-			outfile="ExamManagement" nativeBundles="exe"
+			outfile="ExamManagement" nativeBundles="msi"
 			updatemode="background" >
 	
 			<fx:platform basedir="${java.home}"/>

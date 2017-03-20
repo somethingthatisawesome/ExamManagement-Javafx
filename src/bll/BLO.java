@@ -1,17 +1,30 @@
 package bll;
 
+import java.awt.Desktop;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.openxml4j.opc.OPCPackage;
+import org.apache.poi.xwpf.usermodel.IRunElement;
 import org.apache.poi.xwpf.usermodel.XWPFDocument;
 import org.apache.poi.xwpf.usermodel.XWPFParagraph;
+import org.apache.poi.xwpf.usermodel.XWPFRun;
+import org.apache.poi.xwpf.usermodel.XWPFStyle;
+import org.apache.poi.xwpf.usermodel.XWPFTable;
+import org.apache.poi.xwpf.usermodel.XWPFTableCell;
+import org.apache.poi.xwpf.usermodel.XWPFTableRow;
+import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTDecimalNumber;
+import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTNumPr;
+import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTRPr;
+import org.openxmlformats.schemas.wordprocessingml.x2006.main.STHighlightColor;
 
 import application.PragraphController;
 import ell.Gobal;
@@ -22,9 +35,73 @@ public class BLO {
 	private String tempPath ;
 	private FileInputStream fis = null;
 	private XWPFDocument xdoc = null;
+	BigInteger restart;
+	BigInteger cont;
+	//TODO tạo ra file tạm để kiểm tra
+	public void exportTempExam(List<Paragraph> lpr,String path)
+	{
+		try {
+			xdoc = new XWPFDocument(new FileInputStream(tempPath));
+		} catch (IOException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		int size = xdoc.getParagraphs().size();
+		 for(int i=0;i<size;i++)
+				xdoc.removeBodyElement(0);
+        int pos;
+        for(Paragraph pr:lpr) {
+        	xdoc.createParagraph();
+        	 pos = xdoc.getParagraphs().size()-1;
+
+        	xdoc.setParagraph(pr.value, pos);
+        }
+       
+        try {
+            FileOutputStream out = new FileOutputStream(path+"\\temp.docx");       
+            xdoc.write(out);
+            out.close();
+            fis.close();
+        } catch(Exception e) {
+        	e.printStackTrace();
+        }
+	}
+	//TODO chạy file tạm
+	public void openTempExam(String path)
+	{
+		File f = new File(path+"\\temp.docx");
+		try {
+			Desktop.getDesktop().open(f);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	//TODO xóa highlight của đoạn văn
+	private void clearHighLight(XWPFParagraph pr)
+	{
+		List<XWPFRun> runs = pr.getRuns();
+		for(XWPFRun run:runs)
+		{
+			CTRPr a = run.getCTR().addNewRPr();
+			
+			a.addNewHighlight().setVal(STHighlightColor.NONE);
+			System.out.println(run.getCTR());
+		}
+	}
+	//TODO xóa highlight của văn bản
+		private void clearAllHighLight(List<Paragraph> lpr)
+		{
+		
+			for(Paragraph pr:lpr)
+			{
+				clearHighLight(pr.value);
+			}
+		}
+	//TODO đọc file
 	public int readParagraph(String path)
 	{
-		tempPath  =path;
+		tempPath =path;
 		try {
 			fis = new FileInputStream(path);
 		} catch (FileNotFoundException e) {
@@ -41,24 +118,39 @@ public class BLO {
 	       List<XWPFParagraph> paragraphList =  xdoc.getParagraphs();
 	       List<Paragraph> prList = new ArrayList<Paragraph>();
 	       String numbfmr =null;
-	       numbfmr = paragraphList.get(0).getNumFmt();
+	       XWPFParagraph first = paragraphList.get(0);
+	       numbfmr = first.getNumFmt();
 	       int qusindex=0;
 	       int i=0;
 	       for(XWPFParagraph pr:paragraphList)
 	       {
 	    	   Paragraph lpr = new Paragraph();
 	    	   lpr.value = pr;
+	    	   
 	    	   if(pr.getNumFmt()==numbfmr)
 	    	   {
 	    		   lpr.isQuestion = true;
+	    		   if(pr.getRuns().get(0).getColor()!=null)
+	    		   {
+	    			   lpr.isStatic=true;
+	    		   }
 	    		  qusindex = i;
 	    	   }
 	    	   else
 	    	   {
-	    		   if(pr.getRuns().get(0).getColor()!=null)
+	    		   List<XWPFRun> runs= pr.getRuns();
+	    		   
+	    		   //System.out.println(pr.getNumID());
+	    		   //System.out.println(pr.getStyleID());
+	    		  
+	    		   String color = runs.get(0).getColor();
+	    		   //TODO in mã màu
+	    		   System.out.println(color);
+	    		   if(color!=null)
 	    		   {
+	    			   
 	    			   lpr.isCorrect=true;
-	    	    	   System.out.println(pr.getRuns().get(0).getColor());
+	    	    	   
 	    		   }
 	    		   lpr.belongtoQuestion = qusindex;
 	    	   }
@@ -66,24 +158,52 @@ public class BLO {
 	    	   prList.add(lpr);
 	    	   i++;
 	       }
-	       Gobal.paragraph = prList;
+	
+	       Gobal.paragraph = clearParaphColor(prList);
 	       
 	    return 0;
+	}
+	private List<Paragraph> clearParaphColor(List<Paragraph> lpr)
+	{
+		for(Paragraph pr:lpr)
+		{
+			// TODO In kết quả của Pr
+			   //System.out.println(pr.value.getCTP().getPPr());
+			   
+			pr.value.getCTP().getPPr().setRPr(null);
+			List<XWPFRun> runs = pr.value.getRuns();
+			 
+			   for(XWPFRun run:runs)
+			   {
+				   run.getCTR().setRPr(null);
+				  
+			   }
+			  
+		}
+		return lpr;
 	}
 	private List<Question> randomizeQuestions(List<Paragraph> lpr)
 	{
 		List<Question> questions = convertToQuestion(lpr);
 		for(Question q:questions)
 		{
+			;
 			if(q.value.isStatic==false)
 			{
 				Collections.shuffle(q.answers);
+			}
+			//BigInteger b = q.answers.get(0).value.getNumID();
+			int asize = q.answers.size();
+			for(int i=0;i<asize;i++)
+			{
+				
+		        q.answers.get(i).value.setNumID(q.numID);
 			}
 		}
 		Collections.shuffle(questions);
 		return questions;
 	}
-	private List<Question> convertToQuestion(List<Paragraph> lpr)
+	public List<Question> convertToQuestion(List<Paragraph> lpr)
 	{
 		Paragraph pr;
 		List<Question> questions = new ArrayList<Question>();
@@ -104,7 +224,9 @@ public class BLO {
 					{
 						tq.answers.add(pr);
 					}
+					
 				}while(i<size-1&&pr.isQuestion==false);
+				tq.numID=tq.answers.get(0).value.getNumID();
 				i--;
 				questions.add(tq);
 			}
@@ -130,7 +252,8 @@ public class BLO {
 	}
 	private int exportRandomizeExam(List<Paragraph> prs,String path)
 	{
-		List<Paragraph> lpr = randomizeParagraph(prs);
+		List<Paragraph> lpr =randomizeParagraph(prs);
+		clearAllHighLight(lpr);
 		try {
 			xdoc = new XWPFDocument(new FileInputStream(tempPath));
 		} catch (IOException e1) {
@@ -144,12 +267,18 @@ public class BLO {
         for(Paragraph pr:lpr) {
         	xdoc.createParagraph();
         	 pos = xdoc.getParagraphs().size()-1;
+        	 //xóa màu
+
         	xdoc.setParagraph(pr.value, pos);
         }
+       XWPFDocument adocument = exportAnswer(lpr);
        
         try {
             FileOutputStream out = new FileOutputStream(path);
+            FileOutputStream aout = new FileOutputStream(path.substring(0,path.lastIndexOf("."))+"_Đáp án.docx");
             xdoc.write(out);
+            adocument.write(aout);
+            aout.close();
             out.close();
             fis.close();
         } catch(Exception e) {}
@@ -171,10 +300,51 @@ public class BLO {
 		}
 		
 	}
+	//TODO HightLight đoạn văn
+	public void hightLightParagraph(Paragraph pr)
+	{
+		List<XWPFRun> runs = pr.value.getRuns();
+		for(XWPFRun run:runs)
+		{
+			 run.getCTR().addNewRPr().addNewHighlight().setVal(STHighlightColor.YELLOW);
+		}
+	}
+	public XWPFDocument exportAnswer(List<Paragraph> lpr)
+	{
+		XWPFDocument document = new XWPFDocument();
+		XWPFTable table = document.createTable();
+		List<Question> lqs = convertToQuestion(lpr);
+		int size = lqs.size();
+		XWPFTableRow tableRow = table.createRow();
+		XWPFTableCell cell=tableRow.getCell(0);
+		cell.getCTTc().addNewTcPr().addNewTcW().setW(BigInteger.valueOf(1000));
+		cell.setText("Câu");
+		cell = tableRow.addNewTableCell();
+		cell.getCTTc().addNewTcPr().addNewTcW().setW(BigInteger.valueOf(2000));
+		cell.setText("Đáp án");
+		String holder;
+		for(int i=0;i<size;i++)
+		{
+			holder="";
+			tableRow = table.createRow();
+			 tableRow.getCell(0).setText(Integer.toString(i+1));
+			 List<Paragraph> las = lqs.get(i).answers;
+			 int asize = las.size();
+			 for(int j=0;j<asize;j++)
+			 {
+				 if(las.get(j).isCorrect)
+				 {
+					 holder+=convertNumbertoAphabet(j+1)+" ";
+				 }
+			 }
+			 tableRow.addNewTableCell().setText(holder);
+			 
+		}
+		return document;
+	}
 	private String convertNumbertoAphabet(int number)
 	{
 		String str = Character.toString((char) (number+64));
 		return str;
 	}
-	
 }
