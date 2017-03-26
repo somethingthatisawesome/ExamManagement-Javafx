@@ -69,7 +69,6 @@ public class MainController implements Initializable {
 		   chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Word Document (*.docx)", "*.docx"));
 		   String path = chooser.showOpenDialog(new Stage()).getAbsolutePath();
 		   //System.out.println(path);
-		   
 		   pathTextField.setText(path);
 		   statusPane.setVisible(false);
 	}
@@ -174,12 +173,25 @@ public class MainController implements Initializable {
 			//chooser.setInitialDirectory(file);
 			String path = chooser.showSaveDialog(new Stage()).getAbsolutePath();
 			path=path.substring(0,path.lastIndexOf("."));*/
-			String exportpath = this.filePath.substring(0, this.filePath.lastIndexOf("."));
-			blo.exportExams(Gobal.paragraph,exportpath,Integer.parseInt(numberTextField.getText()),letterRadioButton.isSelected());
+			String filepath = this.filePath.substring(this.filePath.lastIndexOf("\\"),this.filePath.lastIndexOf("."));
+			String path = this.parentfilePath+"\\Đề thi\\";
+			File theDir = new File(path);
+			if(!theDir.exists())
+			{
+				theDir.mkdir();
+			}
+			path+=filepath;
+			blo.exportExams(Gobal.paragraph,path,Integer.parseInt(numberTextField.getText()),letterRadioButton.isSelected());
 			//blo.exportRandomizeExam(Gobal.paragraph,path);
 		} catch (NumberFormatException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+			Alert alert = new Alert(AlertType.CONFIRMATION);
+			alert.setTitle("");
+			alert.setHeaderText("Lỗi");
+			alert.setContentText("Không xuất được kết quả");
+			alert.showAndWait();
+			return;
 		}
 		Alert alert = new Alert(AlertType.CONFIRMATION);
 		alert.setTitle("");
@@ -212,30 +224,22 @@ public class MainController implements Initializable {
 	//TODO Xem chi tiết
 	public void showStatusForm()
 	{
-		/*
-		 try{
-			 
-	            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("FileStatusLayout.fxml"));
-	            Parent root = (Parent) fxmlLoader.load();
-	            Stage stage = new Stage();
-	            stage.initModality(Modality.APPLICATION_MODAL);
-	            //stage.initStyle(StageStyle.UNDECORATED);
-	            stage.setResizable(false);
-	            stage.setTitle("Kiểm tra");
-	            stage.setScene(new Scene(root));  
-	            stage.show();
-	            
-	          
-	          }
-		  catch(Exception e)
-		  {
-			  
-		  }*/
-		
 		String path = parentfilePath;
 		System.out.println(path);
-		blo.exportTempExam(Gobal.paragraph, parentfilePath);
-		blo.openTempExam(path);
+		
+		File file = new File(filePath);
+		boolean fileIsNotLocked = file.renameTo(file);
+		if(fileIsNotLocked==false)
+		{
+			Alert alert = new Alert(AlertType.WARNING);
+			alert.setTitle("");
+			alert.setHeaderText("Tập tin đang được sử dụng bởi chương trình khác");
+			alert.setContentText("Vui lòng đóng chương trình đang sử dụng tập tin "+filePath.substring(filePath.lastIndexOf("\\")+1, filePath.length()));
+			alert.showAndWait();
+			return;
+		}
+		blo.exportTempExam(Gobal.paragraph, filePath);
+		blo.openTempExam(filePath);
 	}
 	public void showProgressForm()
 	{

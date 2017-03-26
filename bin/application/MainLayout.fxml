@@ -62,11 +62,7 @@
             <Color blue="0.624" green="0.624" red="0.624" fx:id="x2" />
           </stroke>
         </Line>
-        <SplitMenuButton alignment="CENTER" layoutX="362.0" layoutY="89.0" mnemonicParsing="false" onAction="#exportRandomizeExam" prefHeight="48.815338134765625" prefWidth="116.0" text="Trộn đề thi">
-          <items>
-            <MenuItem mnemonicParsing="false" text="Xuất đáp án" />
-          </items>
-        </SplitMenuButton>
+        <Button layoutX="362.0" layoutY="81.0" mnemonicParsing="false" onAction="#exportRandomizeExam" prefHeight="50.9609375" prefWidth="116.0" text="Trộn đề thi" />
       </children>
     </Pane>
     <Line endX="398.0" endY="0.0" fill="$x1" layoutX="128.0" layoutY="351.0" startX="-99.0" startY="3.0" stroke="$x2" style="-fx-background-color:#ededed;" />

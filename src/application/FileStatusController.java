@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.ResourceBundle;
 
 import org.apache.poi.hssf.util.HSSFColor.BLACK;
+import org.apache.poi.xwpf.usermodel.XWPFParagraph;
 
 import bll.BLO;
 import ell.Gobal;
@@ -87,15 +88,21 @@ public class FileStatusController implements Initializable {
 	private boolean isDuplcatedAnswer(Question q)
 	{
 		int size = q.answers.size()-1;
+		Paragraph pholder;
+		Paragraph pholder1;
 		for(int i=0;i<size;i++)
 		{
-			String holder = q.answers.get(i).value.getText();
+			pholder = q.answers.get(i);
+			String holder = pholder.value.getText();
 			for(int j=i+1;j<size;j++)
 			{
-				String s = q.answers.get(j).value.getText();
-				if(holder.contains(s))
+				pholder1 = q.answers.get(j);
+				String s = pholder1.value.getText();
+				if(holder.equals(s))
 				{
 					value+="\n"+q.value.value.getText()+"\n\t"+_DUPLICATE_ANSWER+"\n";
+					blo.hightLightParagraph(pholder1);
+					blo.hightLightParagraph(pholder);
 					System.out.println(_DUPLICATE_ANSWER);
 					return true;
 				}
@@ -110,7 +117,6 @@ public class FileStatusController implements Initializable {
 			value+="\n"+q.value.value.getText()+"\n\t"+_NO_ANWSER+"\n";
 			System.out.println(_NO_ANWSER);
 			return true;
-			
 			}
 		return false;
 	}

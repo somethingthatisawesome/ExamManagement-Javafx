@@ -13,6 +13,11 @@ import java.util.List;
 
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.openxml4j.opc.OPCPackage;
+import org.apache.poi.ss.util.CellRangeAddress;
+import org.apache.poi.xssf.usermodel.XSSFCell;
+import org.apache.poi.xssf.usermodel.XSSFRow;
+import org.apache.poi.xssf.usermodel.XSSFSheet;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.apache.poi.xwpf.usermodel.IRunElement;
 import org.apache.poi.xwpf.usermodel.XWPFDocument;
 import org.apache.poi.xwpf.usermodel.XWPFParagraph;
@@ -22,6 +27,7 @@ import org.apache.poi.xwpf.usermodel.XWPFTable;
 import org.apache.poi.xwpf.usermodel.XWPFTableCell;
 import org.apache.poi.xwpf.usermodel.XWPFTableRow;
 import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTDecimalNumber;
+import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTHMerge;
 import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTNumPr;
 import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTRPr;
 import org.openxmlformats.schemas.wordprocessingml.x2006.main.STHighlightColor;
@@ -35,6 +41,7 @@ public class BLO {
 	private String tempPath ;
 	private FileInputStream fis = null;
 	private XWPFDocument xdoc = null;
+	public List<List<Paragraph>> Exams = new ArrayList<List<Paragraph>>();
 	BigInteger restart;
 	BigInteger cont;
 	//TODO tạo ra file tạm để kiểm tra
@@ -58,10 +65,9 @@ public class BLO {
         }
        
         try {
-            FileOutputStream out = new FileOutputStream(path+"\\temp.docx");       
-            xdoc.write(out);
-            out.close();
-            fis.close();
+        	
+        	exportDocument(path, xdoc);
+        	fis.close();
         } catch(Exception e) {
         	e.printStackTrace();
         }
@@ -69,7 +75,7 @@ public class BLO {
 	//TODO chạy file tạm
 	public void openTempExam(String path)
 	{
-		File f = new File(path+"\\temp.docx");
+		File f = new File(path);
 		try {
 			Desktop.getDesktop().open(f);
 		} catch (IOException e) {
@@ -140,9 +146,6 @@ public class BLO {
 	    	   {
 	    		   List<XWPFRun> runs= pr.getRuns();
 	    		   
-	    		   //System.out.println(pr.getNumID());
-	    		   //System.out.println(pr.getStyleID());
-	    		  
 	    		   String color = runs.get(0).getColor();
 	    		   //TODO in mã màu
 	    		   System.out.println(color);
@@ -159,7 +162,7 @@ public class BLO {
 	    	   i++;
 	       }
 	
-	       Gobal.paragraph = clearParaphColor(prList);
+	       Gobal.paragraph = prList;
 	       
 	    return 0;
 	}
@@ -254,6 +257,7 @@ public class BLO {
 	{
 		List<Paragraph> lpr =randomizeParagraph(prs);
 		clearAllHighLight(lpr);
+		clearParaphColor(lpr);
 		try {
 			xdoc = new XWPFDocument(new FileInputStream(tempPath));
 		} catch (IOException e1) {
@@ -271,32 +275,44 @@ public class BLO {
 
         	xdoc.setParagraph(pr.value, pos);
         }
-       XWPFDocument adocument = exportAnswer(lpr);
+        //TODO thêm đề thi vào biến tạm
+        Exams.add(lpr);
+       //XWPFDocument adocument = exportAnswer(lpr);
        
         try {
-            FileOutputStream out = new FileOutputStream(path);
-            FileOutputStream aout = new FileOutputStream(path.substring(0,path.lastIndexOf("."))+"_Đáp án.docx");
-            xdoc.write(out);
-            adocument.write(aout);
-            aout.close();
-            out.close();
+            //FileOutputStream out = new FileOutputStream(path);
+            //FileOutputStream aout = new FileOutputStream(path.substring(0,path.lastIndexOf("\\"))+"\\Đáp án.docx");
+            //xdoc.write(out);
+            //adocument.write(aout);
+            //aout.close();
+            //out.close();
+        	exportDocument(path, xdoc);
             fis.close();
-        } catch(Exception e) {}
+        } catch(Exception e) {
+        	e.printStackTrace();
+        }
 		return 0;
 	}
 	public void exportExams(List<Paragraph> lpr, String path, int number, boolean b) {
+		Exams.clear();
 		if(b==false)
 		{
 			for(int i=1;i<=number;i++)
 			{
 				exportRandomizeExam(lpr, path+"_"+i+".docx");
 			}
+			String tempPath = path.substring(0,path.lastIndexOf("\\"));
+			exportDocument(tempPath+"\\Đáp án.docx",exportAnswer(false));
+			exportExcel(tempPath+"\\Đáp án.xlsx", exportAnswerExcel(false));
 		}else
 		{
 			for(int i=1;i<=number;i++)
 			{
 				exportRandomizeExam(lpr, path+"_"+ convertNumbertoAphabet(i)+".docx");
 			}
+			String tempPath = path.substring(0,path.lastIndexOf("\\"));
+			exportDocument(tempPath+"\\Đáp án.docx",exportAnswer(true));
+			exportExcel(tempPath+"\\Đáp án.xlsx", exportAnswerExcel(true));
 		}
 		
 	}
@@ -309,17 +325,40 @@ public class BLO {
 			 run.getCTR().addNewRPr().addNewHighlight().setVal(STHighlightColor.YELLOW);
 		}
 	}
-	public XWPFDocument exportAnswer(List<Paragraph> lpr)
+	private XWPFDocument exportAnswer(boolean b)
 	{
+		XWPFTableRow tableRow;
+		XWPFTableCell cell;
 		XWPFDocument document = new XWPFDocument();
+		
+		int index=0;
+		for(List<Paragraph> lpr :Exams)
+		{
+		index++;
+		CTHMerge hMerge = CTHMerge.Factory.newInstance();
 		XWPFTable table = document.createTable();
 		List<Question> lqs = convertToQuestion(lpr);
 		int size = lqs.size();
-		XWPFTableRow tableRow = table.createRow();
-		XWPFTableCell cell=tableRow.getCell(0);
+		XWPFTableRow firstrow = table.getRow(0);
+		
+		cell=firstrow.getCell(0);
+		if (cell.getCTTc().getTcPr() == null) cell.getCTTc().addNewTcPr();
+		if (cell.getCTTc().getTcPr().getGridSpan() == null) cell.getCTTc().getTcPr().addNewGridSpan();
+		cell.getCTTc().getTcPr().getGridSpan().setVal(BigInteger.valueOf(2));
+		
+		if(b==false)
+		{
+		firstrow.getCell(0).setText("Đề "+index);
+		}
+		else
+		{
+			firstrow.getCell(0).setText("Đề "+convertNumbertoAphabet(index));	
+		}
+		tableRow = table.createRow();
+		cell=tableRow.getCell(0);
 		cell.getCTTc().addNewTcPr().addNewTcW().setW(BigInteger.valueOf(1000));
 		cell.setText("Câu");
-		cell = tableRow.addNewTableCell();
+		cell = tableRow.createCell();
 		cell.getCTTc().addNewTcPr().addNewTcW().setW(BigInteger.valueOf(2000));
 		cell.setText("Đáp án");
 		String holder;
@@ -328,6 +367,7 @@ public class BLO {
 			holder="";
 			tableRow = table.createRow();
 			 tableRow.getCell(0).setText(Integer.toString(i+1));
+			 cell = tableRow.createCell();
 			 List<Paragraph> las = lqs.get(i).answers;
 			 int asize = las.size();
 			 for(int j=0;j<asize;j++)
@@ -337,8 +377,10 @@ public class BLO {
 					 holder+=convertNumbertoAphabet(j+1)+" ";
 				 }
 			 }
-			 tableRow.addNewTableCell().setText(holder);
+			 cell.setText(holder);
 			 
+		}
+		document.createParagraph();
 		}
 		return document;
 	}
@@ -346,5 +388,93 @@ public class BLO {
 	{
 		String str = Character.toString((char) (number+64));
 		return str;
+	}
+	private XSSFWorkbook exportAnswerExcel(Boolean b)
+	{
+		XSSFWorkbook wb = new XSSFWorkbook();
+		XSSFSheet sheet;
+		XSSFRow row;
+		XSSFCell cell;
+		String holder="";
+		int index=0;
+		int size = 1;
+		String sheetname="";
+		for(List<Paragraph> lpr: this.Exams)
+		{
+			List<Question> lqs = convertToQuestion(lpr);
+			size = lqs.size();
+			index++;
+			if(b==false)
+			sheetname = "Đề "+index;
+			else
+				sheetname="Đề "+convertNumbertoAphabet(index);
+			sheet = wb.createSheet(sheetname);
+			sheet.createRow(0);
+			row = sheet.getRow(0);
+			row.createCell(0);
+			row.createCell(1);
+			cell = row.getCell(0);
+			cell.setCellValue(sheetname);
+			sheet.addMergedRegion(new CellRangeAddress(0,0,0,1));
+			row = sheet.createRow(1);
+			cell = row.createCell(0);
+			cell.setCellValue("Câu");
+			cell = row.createCell(1);
+			cell.setCellValue("Đáp án");
+			for(int i=0;i<size;i++)
+			{
+				holder="";
+				row = sheet.createRow(i+2);
+				row.createCell(0);
+				row.createCell(1);
+				cell = row.getCell(0);
+				cell.setCellValue(i+1);
+				cell = row.getCell(1);
+				List<Paragraph> las = lqs.get(i).answers;
+				 int asize = las.size();
+				 for(int j=0;j<asize;j++)
+				 {
+					 if(las.get(j).isCorrect)
+					 {
+						 holder+=convertNumbertoAphabet(j+1)+" ";
+					 }
+				 }
+				 
+				 cell.setCellValue(holder);
+			}
+			
+			 
+		}
+		return wb;
+	}
+	private void exportDocument(String path,XWPFDocument document)
+	{
+
+			try {
+				FileOutputStream out = new FileOutputStream(path);
+				document.write(out);
+				out.close();
+			} catch (FileNotFoundException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		 
+	}
+	private void exportExcel(String path,XSSFWorkbook document)
+	{
+		try {
+			FileOutputStream out = new FileOutputStream(path);
+			document.write(out);
+			out.close();
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 }
