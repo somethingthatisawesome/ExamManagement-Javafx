@@ -1,15 +1,29 @@
 package bll;
 
+import javafx.scene.paint.Color;
 import java.awt.Desktop;
+import java.io.BufferedWriter;
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.StringReader;
+import java.io.StringWriter;
 import java.math.BigInteger;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
 
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.openxml4j.opc.OPCPackage;
@@ -18,26 +32,38 @@ import org.apache.poi.xssf.usermodel.XSSFCell;
 import org.apache.poi.xssf.usermodel.XSSFRow;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-import org.apache.poi.xwpf.usermodel.IRunElement;
+import org.apache.poi.xwpf.usermodel.Document;
 import org.apache.poi.xwpf.usermodel.XWPFDocument;
 import org.apache.poi.xwpf.usermodel.XWPFParagraph;
+import org.apache.poi.xwpf.usermodel.XWPFPictureData;
 import org.apache.poi.xwpf.usermodel.XWPFRun;
-import org.apache.poi.xwpf.usermodel.XWPFStyle;
 import org.apache.poi.xwpf.usermodel.XWPFTable;
 import org.apache.poi.xwpf.usermodel.XWPFTableCell;
 import org.apache.poi.xwpf.usermodel.XWPFTableRow;
-import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTDecimalNumber;
+import org.apache.xmlbeans.XmlException;
+import org.apache.xmlbeans.XmlObject;
+import org.apache.xmlbeans.XmlOptions;
+import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTBody;
 import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTHMerge;
-import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTNumPr;
+import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTR;
 import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTRPr;
+import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTString;
+import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTStyles;
 import org.openxmlformats.schemas.wordprocessingml.x2006.main.STHighlightColor;
-
-import application.PragraphController;
+import org.openxmlformats.schemas.wordprocessingml.x2006.main.STHighlightColor.Enum;
+import org.xml.sax.InputSource;
+import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTR;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.xml.sax.InputSource;
 import ell.Gobal;
 import ell.Paragraph;
 import ell.Question;
-
+/*
+ * Class BLO đóng vai trò xử lý tất cả các thông tin nghiệp vụ của chương trình
+ */
 public class BLO {
+	private final String _FORMATPATH = "./src/asset/format.txt";
 	private String tempPath ;
 	private FileInputStream fis = null;
 	private XWPFDocument xdoc = null;
@@ -45,6 +71,10 @@ public class BLO {
 	BigInteger restart;
 	BigInteger cont;
 	//TODO tạo ra file tạm để kiểm tra
+	/*
+	 * Tạo xuất ra thông tin bị sai sót trong cấu trúc đề thi vào tập tin đang sử dụng
+	 * các thông tin bị sai sót sẽ được đánh dấu hightlight
+	 */
 	public void exportTempExam(List<Paragraph> lpr,String path)
 	{
 		try {
@@ -72,7 +102,11 @@ public class BLO {
         	e.printStackTrace();
         }
 	}
-	//TODO chạy file tạm
+	//TODO Chạy file tạm
+	/*
+	 * Khởi động file tạm bằng các chương trình đọc docx mặc định có trên máy
+	 * 
+	 */
 	public void openTempExam(String path)
 	{
 		File f = new File(path);
@@ -84,6 +118,9 @@ public class BLO {
 		}
 	}
 	//TODO xóa highlight của đoạn văn
+	/*
+	 * Trước khi xuất văn bản hoàn chỉnh cần phải xóa hightlight đã được đánh dấu trước đó
+	 */
 	private void clearHighLight(XWPFParagraph pr)
 	{
 		List<XWPFRun> runs = pr.getRuns();
@@ -96,6 +133,9 @@ public class BLO {
 		}
 	}
 	//TODO xóa highlight của văn bản
+	/*
+	 * Xóa tất cả các HightLight có mặt trong văn bản
+	 */
 		private void clearAllHighLight(List<Paragraph> lpr)
 		{
 		
@@ -105,9 +145,26 @@ public class BLO {
 			}
 		}
 	//TODO đọc file
-	public int readParagraph(String path)
+		/*
+		 * Đọc file docx chức dữ liệu đề thi từ bộ nhớ máy tính theo đường dẫn path
+		 */	
+	public int readParagraph(String path,Color staticQ,Color Question)
 	{
 		tempPath =path;
+		String staticColor="";
+		String correctQuestion = "";
+		//System.out.println("#" + Integer.toHexString(staticQ.hashCode()).substring(0,6).toUpperCase());
+		if(staticQ!=null)
+			staticColor =  String.format( "%02X%02X%02X",
+		            (int)( staticQ.getRed() * 255 ),
+		            (int)( staticQ.getGreen() * 255 ),
+		            (int)( staticQ.getBlue() * 255 ) );
+		if(Question!=null)
+			correctQuestion =  String.format( "%02X%02X%02X",
+		            (int)( Question.getRed() * 255 ),
+		            (int)( Question.getGreen() * 255 ),
+		            (int)( Question.getBlue() * 255 ) );
+		System.out.println("Màu:"+correctQuestion+" "+staticColor);
 		try {
 			fis = new FileInputStream(path);
 		} catch (FileNotFoundException e) {
@@ -136,9 +193,22 @@ public class BLO {
 	    	   if(pr.getNumFmt()==numbfmr)
 	    	   {
 	    		   lpr.isQuestion = true;
-	    		   if(pr.getRuns().get(0).getColor()!=null)
+	    		   String color  = pr.getRuns().get(0).getColor();
+	    		   System.out.println(color);
+	    		   if(staticColor=="")
 	    		   {
-	    			   lpr.isStatic=true;
+		    		   if(color!=null)
+		    		   {
+		    			   lpr.isStatic=true;
+		    		   }
+	    		   }
+	    		   else
+	    		   {
+	    			  
+	    			   if(color!=null&&color.equals(staticColor))
+		    		   {
+		    			   lpr.isStatic=true;
+		    		   }
 	    		   }
 	    		  qusindex = i;
 	    	   }
@@ -149,11 +219,23 @@ public class BLO {
 	    		   String color = runs.get(0).getColor();
 	    		   //TODO in mã màu
 	    		   System.out.println(color);
-	    		   if(color!=null)
+	    		   if(correctQuestion=="")
 	    		   {
-	    			   
-	    			   lpr.isCorrect=true;
-	    	    	   
+		    		   if(color!=null)
+		    		   {
+		    			   
+		    			   lpr.isCorrect=true;
+		    	    	   
+		    		   }
+	    		   }
+	    		   else
+	    		   {
+	    			   if(color!=null&&color.equals(correctQuestion))
+		    		   {
+		    			   
+		    			   lpr.isCorrect=true;
+		    	    	   
+		    		   }
 	    		   }
 	    		   lpr.belongtoQuestion = qusindex;
 	    	   }
@@ -166,13 +248,15 @@ public class BLO {
 	       
 	    return 0;
 	}
+	/*
+	 * Xóa màu chữ của văn bản 
+	 * bởi vì văn bản chỉ có màu đen khi được xuất ra
+	 */
 	private List<Paragraph> clearParaphColor(List<Paragraph> lpr)
 	{
 		for(Paragraph pr:lpr)
 		{
-			// TODO In kết quả của Pr
-			   //System.out.println(pr.value.getCTP().getPPr());
-			   
+			
 			pr.value.getCTP().getPPr().setRPr(null);
 			List<XWPFRun> runs = pr.value.getRuns();
 			 
@@ -185,6 +269,9 @@ public class BLO {
 		}
 		return lpr;
 	}
+	/*
+	 * Trộn câu hỏi
+	 */
 	private List<Question> randomizeQuestions(List<Paragraph> lpr)
 	{
 		List<Question> questions = convertToQuestion(lpr);
@@ -195,7 +282,7 @@ public class BLO {
 			{
 				Collections.shuffle(q.answers);
 			}
-			//BigInteger b = q.answers.get(0).value.getNumID();
+			
 			int asize = q.answers.size();
 			for(int i=0;i<asize;i++)
 			{
@@ -206,6 +293,9 @@ public class BLO {
 		Collections.shuffle(questions);
 		return questions;
 	}
+	/*
+	 * Chuyển văn bản sang câu hỏi
+	 */
 	public List<Question> convertToQuestion(List<Paragraph> lpr)
 	{
 		Paragraph pr;
@@ -236,6 +326,9 @@ public class BLO {
 		}
 		return questions;
 	}
+	/*
+	 * Chuyển câu hỏi sang văn bản
+	 */
 	private List<Paragraph> convertToParagraph(List<Question> lq)
 	{
 		List<Paragraph> lpr = new ArrayList<Paragraph>();
@@ -249,15 +342,54 @@ public class BLO {
 		}
 		return lpr;
 	}
+	/*
+	 * Trộn văn bản
+	 */
 	private List<Paragraph> randomizeParagraph(List<Paragraph> lpr)
 	{
 		return convertToParagraph(randomizeQuestions(lpr));
 	}
-	private int exportRandomizeExam(List<Paragraph> prs,String path)
+	/*
+	 * Nạp header
+	 */
+	private XWPFDocument loadHeader(String path)
+	{
+		FileInputStream fis =null;
+		XWPFDocument header = null;
+		try {
+			fis = new FileInputStream(path);
+			header = new XWPFDocument(fis);
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return header;
+	}
+	private static void appendBody(CTBody src, CTBody append) throws Exception {
+	    XmlOptions optionsOuter = new XmlOptions();
+	    optionsOuter.setSaveOuter();
+	    String appendString = append.xmlText(optionsOuter);
+	    String srcString = src.xmlText();
+	    String prefix = srcString.substring(0,srcString.indexOf(">")+1);
+	    String mainPart = srcString.substring(srcString.indexOf(">")+1,srcString.lastIndexOf("<"));
+	    String sufix = srcString.substring( srcString.lastIndexOf("<") );
+	    String addPart = appendString.substring(appendString.indexOf(">") + 1, appendString.lastIndexOf("<"));
+	    CTBody makeBody = CTBody.Factory.parse(prefix+mainPart+addPart+sufix);
+	    src.set(makeBody);
+	}
+	/*
+	 * Xuất văn bản đã được trộn
+	 */
+	private int exportRandomizeExam(List<Paragraph> prs,String path,String headerpath,String id)
 	{
 		List<Paragraph> lpr =randomizeParagraph(prs);
 		clearAllHighLight(lpr);
 		clearParaphColor(lpr);
+		
+		
 		try {
 			xdoc = new XWPFDocument(new FileInputStream(tempPath));
 		} catch (IOException e1) {
@@ -267,25 +399,86 @@ public class BLO {
 		int size = xdoc.getParagraphs().size();
 		 for(int i=0;i<size;i++)
 				xdoc.removeBodyElement(0);
+		//passStyle(xdoc, header);
+		/*
+		try {
+			appendBody(xdoc.getDocument().getBody(),header.getDocument().getBody());
+		} catch (Exception e1) {
+			// TODO Auto-generated cat0h block
+			e1.printStackTrace();
+		}*/
         int pos;
+        String name = "";
+        try {
+			XWPFDocument header = loadHeader(headerpath);
+			List<XWPFPictureData> pics = header.getAllPictures();
+			XWPFPictureData logo = null;
+			for(XWPFPictureData pic:pics)
+			{
+				try {
+					xdoc.addPictureData(pic.getData(),pic.getPictureType());
+					logo = pic;
+				} catch (InvalidFormatException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+			
+			List<XWPFParagraph> hpr = header.getParagraphs();
+			//Change text box
+			 CTR ctr = hpr.get(0).getCTP().getRArray(0);
+			    InputSource is = new InputSource(new StringReader(ctr.xmlText()));
+			    DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+		        DocumentBuilder db = dbf.newDocumentBuilder();
+		        org.w3c.dom.Document doc = db.parse(is);
+		        NodeList elements = doc.getElementsByTagName("w:t");
+		        int sizel = elements.getLength();
+		        System.out.println(elements.getLength());
+		        Node element = null;
+		        for(int i=0;i<sizel;i++)
+		        {
+		        	element = elements.item(i);
+		        	if(element.getTextContent().equals("A"))
+		        	{
+		        		element.setTextContent(id);
+		        	}
+		        	System.out.println(element.getTextContent());
+		        }
+		        
+		      XmlObject xobj = XmlObject.Factory.parse(toString(doc));
+		      ctr.set(xobj);
+			for(XWPFParagraph pr:hpr)
+			{
+				xdoc.createParagraph();
+				pos = xdoc.getParagraphs().size()-1;
+				xdoc.setParagraph(pr, pos);
+			}
+			
+			/*
+			 * 
+			InputStream logois = new ByteArrayInputStream(logo.getData());
+			InputStream pic = new FileInputStream("C:\\Users\\trihm\\Desktop\\Capture.PNG");
+			XWPFParagraph t = xdoc.createParagraph();
+			XWPFRun r = t.createRun();
+			r.setText("fawefawef");
+			r.addPicture(pic, Document.PICTURE_TYPE_PNG, "1", 200, 100);*/
+		} catch (Exception e1) {
+			// TODO Auto-generated catch block
+			//e1.printStackTrace();
+			System.out.println(e1.getMessage());
+		}
+        
         for(Paragraph pr:lpr) {
         	xdoc.createParagraph();
-        	 pos = xdoc.getParagraphs().size()-1;
-        	 //xóa màu
-
+        	pos = xdoc.getParagraphs().size()-1;
         	xdoc.setParagraph(pr.value, pos);
         }
         //TODO thêm đề thi vào biến tạm
         Exams.add(lpr);
        //XWPFDocument adocument = exportAnswer(lpr);
-       
+        
         try {
-            //FileOutputStream out = new FileOutputStream(path);
-            //FileOutputStream aout = new FileOutputStream(path.substring(0,path.lastIndexOf("\\"))+"\\Đáp án.docx");
-            //xdoc.write(out);
-            //adocument.write(aout);
-            //aout.close();
-            //out.close();
+
         	exportDocument(path, xdoc);
             fis.close();
         } catch(Exception e) {
@@ -293,13 +486,16 @@ public class BLO {
         }
 		return 0;
 	}
-	public void exportExams(List<Paragraph> lpr, String path, int number, boolean b) {
+	/*
+	 * Xuất văn bản
+	 */
+	public void exportExams(List<Paragraph> lpr, String path, int number, boolean b,String headerpath) {
 		Exams.clear();
 		if(b==false)
 		{
 			for(int i=1;i<=number;i++)
 			{
-				exportRandomizeExam(lpr, path+"_"+i+".docx");
+				exportRandomizeExam(lpr, path+"_"+i+".docx",headerpath,Integer.toString(i));
 			}
 			String tempPath = path.substring(0,path.lastIndexOf("\\"));
 			exportDocument(tempPath+"\\Đáp án.docx",exportAnswer(false));
@@ -308,7 +504,8 @@ public class BLO {
 		{
 			for(int i=1;i<=number;i++)
 			{
-				exportRandomizeExam(lpr, path+"_"+ convertNumbertoAphabet(i)+".docx");
+				String t = convertNumbertoAphabet(i);
+				exportRandomizeExam(lpr, path+"_"+t +".docx",headerpath,t);
 			}
 			String tempPath = path.substring(0,path.lastIndexOf("\\"));
 			exportDocument(tempPath+"\\Đáp án.docx",exportAnswer(true));
@@ -316,15 +513,92 @@ public class BLO {
 		}
 		
 	}
-	//TODO HightLight đoạn văn
-	public void hightLightParagraph(Paragraph pr)
+	//TODO nạp dữ liệu từ format.xml
+	/*
+	 * Nạp định dạng màu từ file format.xml vào cài đặt cho hệ thống
+	 */
+	public List<String> loadFormat()
 	{
+		List<String> formatFile=null;
+		try {
+			formatFile= Files.readAllLines(Paths.get(_FORMATPATH));
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	return formatFile;
+	}
+	//TODO lưu format
+	/*
+	 * Lưu định dạng của chương trình vào xml
+	 */
+	public void saveFormat(List<String> format)
+	{
+		
+		try (BufferedWriter writer = Files.newBufferedWriter(Paths.get(_FORMATPATH))) {
+           for(String string:format)
+        	   writer.write(string+"\n");
+        } catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return;
+		}
+		System.out.println("saved!");
+	}
+	//TODO HightLight đoạn văn
+	/*
+	 * HighLight đoạn văn bản tùy theo mã màu được truyền vào
+	 */
+	public void hightLightParagraph(Paragraph pr,String color)
+	{
+		Enum a = STHighlightColor.YELLOW;
+		color = color.toLowerCase();
+		switch(color)
+		{
+		case "black":
+			a = STHighlightColor.BLACK;
+			break;
+		case "dark red":
+			a = STHighlightColor.DARK_RED;
+			break;
+		case "red":
+			a = STHighlightColor.RED;
+			break;
+		case "dark yellow":
+			a = STHighlightColor.DARK_YELLOW;
+			break;
+		case "yellow":
+			a = STHighlightColor.YELLOW;
+			break;
+		case "dark blue":
+			a = STHighlightColor.DARK_BLUE;
+			break;
+		case "bright green":
+			a= STHighlightColor.GREEN;
+			break;
+		case "green":
+			a= STHighlightColor.DARK_GREEN;
+			break;
+		case "turquoise":
+			a= STHighlightColor.CYAN;
+			break;
+		case "violet":
+			a= STHighlightColor.MAGENTA;
+			break;
+		default:
+			a= STHighlightColor.YELLOW;
+			break;
+		}
 		List<XWPFRun> runs = pr.value.getRuns();
 		for(XWPFRun run:runs)
 		{
-			 run.getCTR().addNewRPr().addNewHighlight().setVal(STHighlightColor.YELLOW);
+			 run.getCTR().addNewRPr().addNewHighlight().setVal(a);
 		}
 	}
+	/*
+	 * Xuất đáp án của đề thi
+	 * tùy theo giá trị b mà người dùng xuất theo định dạn số 1 2 3 hay ký tự A B C
+	 */
 	private XWPFDocument exportAnswer(boolean b)
 	{
 		XWPFTableRow tableRow;
@@ -384,11 +658,24 @@ public class BLO {
 		}
 		return document;
 	}
+	/*
+	 * Chuyển số sang ký tự Aphabet VD: 1->A
+	 */
 	private String convertNumbertoAphabet(int number)
 	{
-		String str = Character.toString((char) (number+64));
+		int count = (number / 26)+1;
+		String str = "";
+		for(int i=0;i<count;i++)
+		{
+			str += Character.toString((char) (number%26+64));
+			number-=26;
+		}
 		return str;
 	}
+	/*
+	 * Xuất đáp án dạng Bảng tính Excel
+	 * tùy theo giá trị b mà xuất ra định dạng số hay ký tự
+	 */
 	private XSSFWorkbook exportAnswerExcel(Boolean b)
 	{
 		XSSFWorkbook wb = new XSSFWorkbook();
@@ -447,6 +734,10 @@ public class BLO {
 		}
 		return wb;
 	}
+	/*
+	 * Xuất văn bản dưới định dạng Word document
+	 * và lưu ở đường dẫn theo biến path truyền vào
+	 */
 	private void exportDocument(String path,XWPFDocument document)
 	{
 
@@ -463,6 +754,10 @@ public class BLO {
 			}
 		 
 	}
+	/*
+	 * Xuất văn bản dưới định dạng Excel
+	 * và lưu ở đường dẫn theo biến path truyền vào
+	 */
 	private void exportExcel(String path,XSSFWorkbook document)
 	{
 		try {
@@ -477,4 +772,12 @@ public class BLO {
 			e.printStackTrace();
 		}
 	}
+	private  String toString(org.w3c.dom.Document newDoc) throws Exception{
+	    DOMSource domSource = new DOMSource(newDoc);
+	    javax.xml.transform.Transformer transformer = TransformerFactory.newInstance().newTransformer();
+	    StringWriter sw = new StringWriter();
+	    StreamResult sr = new StreamResult(sw);
+	    transformer.transform(domSource, sr);
+	   return sw.toString();
+	  }
 }

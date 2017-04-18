@@ -17,7 +17,9 @@ import javafx.fxml.Initializable;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.stage.Stage;
-
+/*
+ * Kiểm tra tính đúng đắn của văn bản
+ */
 public class FileStatusController implements Initializable {
 	private BLO blo = new BLO();
 	private int qsize =0;
@@ -55,7 +57,9 @@ public class FileStatusController implements Initializable {
 	private final String _NO_CORRECT_ANWSER="Câu hỏi không có đáp án đúng";
 	private final String _DUPLICATE_ANSWER="Đáp án bị trùng";
 	private final String _BLANK_ANSWER="Đáp án rỗng";
-	
+	/*
+	 * Kiểm tra những điều kiện gây sai sót
+	 */
 	private int check(List<Paragraph> lpr)
 	{
 		List<Question> lqs = blo.convertToQuestion(lpr);
@@ -63,15 +67,16 @@ public class FileStatusController implements Initializable {
 		qsize = lqs.size();
 		for(Question q:lqs)
 		{
-			if(isBlankAnswer(q)||isDuplcatedAnswer(q)||isNoAnswer(q)||isNoCorrectAnswer(q))
+			if(isBlankAnswer(q)||isDuplicatedAnswer(q)||isNoAnswer(q)||isNoCorrectAnswer(q)||isDuplicatedQuestion(q, lqs))
 			{
-				warningsize++;
-				blo.hightLightParagraph(q.value);
 				flag = 1;
 			}
 		}
 		return flag;
 	}
+	/*
+	 * Đáp rỗng
+	 */
 	private boolean isBlankAnswer(Question q)
 	{
 		for(Paragraph pr:q.answers)
@@ -79,13 +84,17 @@ public class FileStatusController implements Initializable {
 			if(pr.value.getText()==""){
 				value+="\n"+q.value.value.getText()+"\n\t"+_BLANK_ANSWER+"\n";
 				System.out.println(_BLANK_ANSWER);
+				
 				return true;
 			}
 			
 		}
 		return false;
 	}
-	private boolean isDuplcatedAnswer(Question q)
+	/*
+	 * Trùng đáp án
+	 */
+	private boolean isDuplicatedAnswer(Question q)
 	{
 		int size = q.answers.size()-1;
 		Paragraph pholder;
@@ -101,8 +110,8 @@ public class FileStatusController implements Initializable {
 				if(holder.equals(s))
 				{
 					value+="\n"+q.value.value.getText()+"\n\t"+_DUPLICATE_ANSWER+"\n";
-					blo.hightLightParagraph(pholder1);
-					blo.hightLightParagraph(pholder);
+					blo.hightLightParagraph(pholder1,Gobal._DA_error);
+					blo.hightLightParagraph(pholder,Gobal._DA_error);
 					System.out.println(_DUPLICATE_ANSWER);
 					return true;
 				}
@@ -110,16 +119,39 @@ public class FileStatusController implements Initializable {
 		}
 		return false;
 	}
+	/*
+	 * Không có câu trả lời
+	 */
 	private boolean isNoAnswer(Question q)
 	{
 		if(q.answers.isEmpty()) 
 			{
 			value+="\n"+q.value.value.getText()+"\n\t"+_NO_ANWSER+"\n";
 			System.out.println(_NO_ANWSER);
+
 			return true;
 			}
 		return false;
 	}
+	private boolean isDuplicatedQuestion(Question q, List<Question> lq)
+	{
+		String sholder =q.value.value.getText();
+		
+		for(Question oq:lq)
+		{
+			if(!q.equals(oq))
+			if(sholder.equals(oq.value.value.getText()))
+			{
+				blo.hightLightParagraph(q.value, Gobal._DQ_error);
+				blo.hightLightParagraph(oq.value, Gobal._DQ_error);
+				return true;
+			}
+		}
+		return false;
+	}
+	/*
+	 * Không có câu trả lời đúng
+	 */
 	private boolean isNoCorrectAnswer(Question q)
 	{
 		for(Paragraph pr:q.answers)
@@ -130,6 +162,7 @@ public class FileStatusController implements Initializable {
 				return false;
 				}
 		}
+		blo.hightLightParagraph(q.value,Gobal._NCA_error);
 		value+="\n"+q.value.value.getText()+"\n\t"+_NO_CORRECT_ANWSER+"\n";
 		System.out.println(_NO_CORRECT_ANWSER);
 		return true;

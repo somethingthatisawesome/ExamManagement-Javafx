@@ -1,9 +1,16 @@
 package application;
 
+
 import java.io.EOFException;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.net.URL;
+import java.util.List;
 import java.util.ResourceBundle;
+
+import org.apache.poi.xwpf.usermodel.XWPFDocument;
 
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -21,14 +28,22 @@ import javafx.scene.control.ToggleGroup;
 import javafx.scene.control.Tooltip;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.Pane;
+import javafx.scene.paint.Color;
 import javafx.stage.FileChooser;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import bll.BLO;
 import ell.Gobal;;
+/*
+ *  Giao diện chính của chương trình
+ *  Người dùng tương tác với giao diện để nhập và xuất đề thi theo kết quả mong muốn
+ */
+
 public class MainController implements Initializable {
-	String filePath = "";
+	private final int _FORMATNUMBER = 5;
+	private String filePath = "";
+	private String headerpath="";
 	String parentfilePath="";
 	BLO blo = new BLO();
 	@FXML
@@ -37,6 +52,8 @@ public class MainController implements Initializable {
 	private ImageView logoImageView;
 	@FXML
 	private TextField numberTextField;
+	@FXML
+	private TextField headerFilePath;
 	@FXML
 	private Button helpButton;
 	@FXML
@@ -58,10 +75,26 @@ public class MainController implements Initializable {
 	@Override
 	public void initialize(URL location, ResourceBundle resources) {
 		// TODO Auto-generated method stub
+		loadFormat();
 		statusPane.setVisible(false);
 		letterRadioButton.setSelected(true);
 		helpButton.setTooltip(new Tooltip("Trợ giúp"));
 	}
+	/*
+	 * Nạp định dạng
+	 */
+	private void loadFormat()
+	{
+		List<String> format = blo.loadFormat();
+		Gobal._staticQuestion = format.get(0);
+		Gobal._isCorrectAns = format.get(1);
+		Gobal._DA_error =format.get(2);
+		Gobal._DQ_error = format.get(3);
+		Gobal._NCA_error = format.get(4);
+	}
+	/*
+	 * Người dùng chọn đường dẫn đến file thông qua một cửa sổ dialog
+	 */
 	public void chooseFile()
 	{
 		 FileChooser chooser = new FileChooser();
@@ -74,8 +107,12 @@ public class MainController implements Initializable {
 	}
 	public void beginButtonClick()
 	{
-		
+	
 	}
+	/*
+	 * Khi người dùng chọn Kiểm tra
+	 * Bắc đầu kiểm tra tính đúng đắng của văn bản và trả về kết quả cho Gobal
+	 */
 	public void checkButtonClick()
 	{
 		//check file
@@ -118,14 +155,14 @@ public class MainController implements Initializable {
 		Gobal.status=0;
 		try
 		{
-		Gobal.status = blo.readParagraph(Gobal.path);
+		Gobal.status = blo.readParagraph(Gobal.path,convertNametoColor(Gobal._staticQuestion),convertNametoColor(Gobal._isCorrectAns));
 		}
 		catch(Exception e)
 		{
 			Gobal.status=2;
 			Gobal.statusInfo=e.toString();
 			showErrorStatus(Gobal.statusInfo);
-			
+			e.printStackTrace();
 			return;
 		}
 		Gobal.statusInfo="";
@@ -144,6 +181,10 @@ public class MainController implements Initializable {
 			showErrorStatus(Gobal.statusInfo);
 		};
 	}
+	/*
+	 * Khi người dùng chọn Xuất văn bản
+	 * Xuất văn bản với giá trị ngẫu nhiên
+	 */
 	public void exportRandomizeExam()
 	{
 		if(Gobal.paragraph==null)
@@ -166,13 +207,6 @@ public class MainController implements Initializable {
 		}
 
 		try {
-			/*
-			File file = new File(this.filePath);
-			FileChooser chooser = new FileChooser();
-			chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Word Document (*.docx)", "*.docx"));
-			//chooser.setInitialDirectory(file);
-			String path = chooser.showSaveDialog(new Stage()).getAbsolutePath();
-			path=path.substring(0,path.lastIndexOf("."));*/
 			String filepath = this.filePath.substring(this.filePath.lastIndexOf("\\"),this.filePath.lastIndexOf("."));
 			String path = this.parentfilePath+"\\Đề thi\\";
 			File theDir = new File(path);
@@ -181,8 +215,7 @@ public class MainController implements Initializable {
 				theDir.mkdir();
 			}
 			path+=filepath;
-			blo.exportExams(Gobal.paragraph,path,Integer.parseInt(numberTextField.getText()),letterRadioButton.isSelected());
-			//blo.exportRandomizeExam(Gobal.paragraph,path);
+			blo.exportExams(Gobal.paragraph,path,Integer.parseInt(numberTextField.getText()),letterRadioButton.isSelected(),Gobal.headerpath);
 		} catch (NumberFormatException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -200,6 +233,31 @@ public class MainController implements Initializable {
 		alert.showAndWait();
 		return;
 	}
+	public void loadHeaderFile()
+	{
+		 FileChooser chooser = new FileChooser();
+		   chooser.setTitle("Open File");
+		   chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Word Document (*.docx)", "*.docx"));
+		   Gobal.headerpath = chooser.showOpenDialog(new Stage()).getAbsolutePath();
+		   headerFilePath.setText(Gobal.headerpath);
+		   
+	}
+	public void increaseNumber()
+	{
+		int number = Integer.parseInt(numberTextField.getText());
+		number = number +1;
+		numberTextField.setText(Integer.toString(number));
+	}
+	public void decreaseNumber()
+	{
+		int number = Integer.parseInt(numberTextField.getText());
+		if(number==1) return;
+		number = number -1;
+		numberTextField.setText(Integer.toString(number));
+	}
+	/*
+	 * Thể hiện văn bản đã đọc thành công
+	 */
 	private void showSuccessStatus()
 	{
 		statusPane.setStyle("-fx-background-color:#4FC064;");
@@ -207,6 +265,9 @@ public class MainController implements Initializable {
 		infoDetail.setVisible(false);
 		statusPane.setVisible(true);
 	}
+	/*
+	 * Thể hiện văn bản không được nạp thành công
+	 */
 	private void showErrorStatus(String error)
 	{
 		statusPane.setStyle("-fx-background-color:#D64A49;");
@@ -214,6 +275,9 @@ public class MainController implements Initializable {
 		infoDetail.setVisible(false);
 		statusPane.setVisible(true);
 	}
+	/*
+	 * Thể hiện văn bản có sai sót trong định dạng
+	 */
 	private void showWarningStatus()
 	{
 		statusPane.setStyle("-fx-background-color:#EBC058;");
@@ -222,7 +286,10 @@ public class MainController implements Initializable {
 		statusPane.setVisible(true);
 	}
 	//TODO Xem chi tiết
-	public void showStatusForm()
+	/*
+	 * Mở văn bản hiện hành và hightlight các chỗ có sai sót
+	 */
+	public void showDetail()
 	{
 		String path = parentfilePath;
 		System.out.println(path);
@@ -241,6 +308,30 @@ public class MainController implements Initializable {
 		blo.exportTempExam(Gobal.paragraph, filePath);
 		blo.openTempExam(filePath);
 	}
+	/*
+	 * Form cài đặt 
+	 * Người dùng tự cài đặng các thông tin màu sắc của văn bản
+	 */
+	public void showSettingForm()
+	{
+		System.out.println("fawef");
+		try{
+            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("SettingLayout.fxml"));
+            Parent root = (Parent) fxmlLoader.load();
+            Stage stage = new Stage();
+            stage.initModality(Modality.APPLICATION_MODAL);
+            //stage.initStyle(StageStyle.UNDECORATED);
+            stage.setResizable(false);
+            stage.setTitle("Cài Đặt");
+            stage.setScene(new Scene(root));  
+            stage.showAndWait();;
+            loadFormat();
+          }
+	  catch(Exception e)
+	  {
+		  e.printStackTrace();
+	  }
+	}
 	public void showProgressForm()
 	{
 		 try{
@@ -253,30 +344,78 @@ public class MainController implements Initializable {
 	            stage.setTitle("Kiểm tra");
 	            stage.setScene(new Scene(root));  
 	            
-	          
 	          }
 		  catch(Exception e)
 		  {
-			  
+			  e.printStackTrace();
 		  }
 	}
-	public void showCheckFileForm()
+	private Color convertNametoColor(String n)
 	{
-		  try{
-	            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("CheckFileLayout.fxml"));
-	            Parent root = (Parent) fxmlLoader.load();
-	            Stage stage = new Stage();
-	            stage.initModality(Modality.APPLICATION_MODAL);
-	            //stage.initStyle(StageStyle.UNDECORATED);
-	            stage.setResizable(false);
-	            stage.setTitle("Kiểm tra");
-	            stage.setScene(new Scene(root));  
-	            stage.show();
-	          }
-		  catch(Exception e)
-		  {
-			  
-		  }
+		Color color = null;
+		n = n.toLowerCase();
+		switch (n) {
+		case "pink":
+			color = Color.PINK;
+			break;
+		case "violet":
+			color = Color.VIOLET;
+			break;
+		case "bright green":
+			color = Color.LAWNGREEN;
+			break;
+		case "dark yellow":
+			color = Color.DARKGOLDENROD;
+			break;
+		case "teal":
+			color = Color.TEAL;
+			break;
+		case "grey-50%":
+			color = Color.GREY;
+			break;
+		case "grey-25%":
+			color = Color.LIGHTGREY;
+			break;
+		case "turquoise":
+			color = Color.TURQUOISE;
+			break;
+		case "black":
+			color = Gobal._BLACK;
+			break;
+		case "dark red":
+			color = Gobal._DARKRED;
+			break;
+		case "red":
+			color = Gobal._RED;
+			break;
+		case "yellow":
+			color = Gobal._YELLOW;
+			break;
+		case "orange":
+			color = Gobal._ORANGE;
+			break;
+		case "light green":
+			color = Gobal._LIGHTGREEN;
+			break;
+		case "green":
+			color = Gobal._GREEN;
+			break;
+		case "light blue":
+			color = Gobal._LIGHTBLUE;
+			break;
+		case "blue":
+			color = Gobal._BLUE;
+			break;
+		case "dark blue":
+			color = Gobal._DARKBLUE;
+			break;
+		case "purple":
+			color = Gobal._PURPLE;
+			break;
+		default:
+			color = null;
+			break;
+		}
+		return color;
 	}
-	
 }
