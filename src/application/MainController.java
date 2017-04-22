@@ -1,16 +1,21 @@
 package application;
 
 
+import java.awt.Desktop;
+import java.awt.Panel;
 import java.io.EOFException;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.ResourceBundle;
 
 import org.apache.poi.xwpf.usermodel.XWPFDocument;
+import org.apache.poi.xwpf.usermodel.XWPFParagraph;
 
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -20,6 +25,8 @@ import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonBar.ButtonData;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
 import javafx.scene.control.RadioButton;
@@ -34,7 +41,8 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import bll.BLO;
-import ell.Gobal;;
+import ell.Gobal;
+import ell.Paragraph;
 /*
  *  Giao diện chính của chương trình
  *  Người dùng tương tác với giao diện để nhập và xuất đề thi theo kết quả mong muốn
@@ -49,11 +57,11 @@ public class MainController implements Initializable {
 	@FXML
 	private Hyperlink infoDetail;
 	@FXML
+	private Pane exportExamPane;
+	@FXML
 	private ImageView logoImageView;
 	@FXML
 	private TextField numberTextField;
-	@FXML
-	private TextField headerFilePath;
 	@FXML
 	private Button helpButton;
 	@FXML
@@ -68,14 +76,13 @@ public class MainController implements Initializable {
 	private Label statusInfo;
 	@FXML
 	private ImageView statusInfoIcon;
-	@FXML 
-	private Button chooseFileButton;
 	@FXML
 	private TextField pathTextField;
 	@Override
 	public void initialize(URL location, ResourceBundle resources) {
 		// TODO Auto-generated method stub
 		loadFormat();
+		exportExamPane.setDisable(true);
 		statusPane.setVisible(false);
 		letterRadioButton.setSelected(true);
 		helpButton.setTooltip(new Tooltip("Trợ giúp"));
@@ -97,13 +104,21 @@ public class MainController implements Initializable {
 	 */
 	public void chooseFile()
 	{
-		 FileChooser chooser = new FileChooser();
-		   chooser.setTitle("Open File");
-		   chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Word Document (*.docx)", "*.docx"));
-		   String path = chooser.showOpenDialog(new Stage()).getAbsolutePath();
-		   //System.out.println(path);
-		   pathTextField.setText(path);
-		   statusPane.setVisible(false);
+		  try {
+			  
+			FileChooser chooser = new FileChooser();
+			   chooser.setTitle("Open File");
+			   chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Word Document (*.docx)", "*.docx"));
+			   String path = chooser.showOpenDialog(new Stage()).getAbsolutePath();
+			   Gobal.reset();
+			   //System.out.println(path);
+			   exportExamPane.setDisable(false);
+			   pathTextField.setText(path);
+			   statusPane.setVisible(false);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 	public void beginButtonClick()
 	{
@@ -187,7 +202,7 @@ public class MainController implements Initializable {
 	 */
 	public void exportRandomizeExam()
 	{
-		if(Gobal.paragraph==null)
+		if(Gobal.paragraph.isEmpty())
 		{
 			Alert alert = new Alert(AlertType.WARNING);
 			alert.setTitle("");
@@ -215,7 +230,7 @@ public class MainController implements Initializable {
 				theDir.mkdir();
 			}
 			path+=filepath;
-			blo.exportExams(Gobal.paragraph,path,Integer.parseInt(numberTextField.getText()),letterRadioButton.isSelected(),Gobal.headerpath);
+			blo.exportExams(Gobal.paragraph,path,Integer.parseInt(numberTextField.getText()),letterRadioButton.isSelected());
 		} catch (NumberFormatException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -226,21 +241,23 @@ public class MainController implements Initializable {
 			alert.showAndWait();
 			return;
 		}
-		Alert alert = new Alert(AlertType.CONFIRMATION);
+		ButtonType foo = new ButtonType("Mở thư mục",ButtonData.OK_DONE);
+		ButtonType cancel = new ButtonType("Đóng",ButtonData.CANCEL_CLOSE);
+		Alert alert = new Alert(AlertType.CONFIRMATION,"",foo,cancel);
 		alert.setTitle("");
 		alert.setHeaderText("Hoàn tất");
 		alert.setContentText("Đã xuất đề thi tại "+parentfilePath);
-		alert.showAndWait();
+		Optional<ButtonType> result = alert.showAndWait();
+		if(result.get() == foo)
+			{
+			try {
+				Desktop.getDesktop().open(new File(this.parentfilePath+"\\Đề thi\\"));
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			}
 		return;
-	}
-	public void loadHeaderFile()
-	{
-		 FileChooser chooser = new FileChooser();
-		   chooser.setTitle("Open File");
-		   chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Word Document (*.docx)", "*.docx"));
-		   Gobal.headerpath = chooser.showOpenDialog(new Stage()).getAbsolutePath();
-		   headerFilePath.setText(Gobal.headerpath);
-		   
 	}
 	public void increaseNumber()
 	{
@@ -261,7 +278,7 @@ public class MainController implements Initializable {
 	private void showSuccessStatus()
 	{
 		statusPane.setStyle("-fx-background-color:#4FC064;");
-		statusInfo.setText("Success: Hoàn tất phân tích dữ liệu");
+		statusInfo.setText("Hoàn tất phân tích dữ liệu");
 		infoDetail.setVisible(false);
 		statusPane.setVisible(true);
 	}
@@ -271,7 +288,7 @@ public class MainController implements Initializable {
 	private void showErrorStatus(String error)
 	{
 		statusPane.setStyle("-fx-background-color:#D64A49;");
-		statusInfo.setText("Error: "+error);
+		statusInfo.setText("Lỗi: "+error);
 		infoDetail.setVisible(false);
 		statusPane.setVisible(true);
 	}
@@ -281,7 +298,7 @@ public class MainController implements Initializable {
 	private void showWarningStatus()
 	{
 		statusPane.setStyle("-fx-background-color:#EBC058;");
-		statusInfo.setText("Warning: Cấu trúc đề thi bị sai sót");
+		statusInfo.setText("Cấu trúc đề thi bị sai sót");
 		infoDetail.setVisible(true);
 		statusPane.setVisible(true);
 	}
@@ -305,8 +322,9 @@ public class MainController implements Initializable {
 			alert.showAndWait();
 			return;
 		}
-		blo.exportTempExam(Gobal.paragraph, filePath);
-		blo.openTempExam(filePath);
+		String _editpath = filePath.substring(0, filePath.lastIndexOf('.'))+"_edited.docx"; 
+		blo.exportTempExam(Gobal.paragraph, _editpath,Gobal.header,Gobal.essay);
+		blo.openTempExam(_editpath);
 	}
 	/*
 	 * Form cài đặt 

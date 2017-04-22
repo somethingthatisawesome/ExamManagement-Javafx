@@ -24,7 +24,7 @@ public class Main extends Application {
 	                   .getResource("MainLayout.fxml"));
 	           //primaryStage.initStyle(StageStyle.UNDECORATED);
 	           primaryStage.setScene(new Scene(root));
-	           primaryStage.setTitle("Phần mềm soạn đề thi trắc nghiệm");
+	           primaryStage.setTitle("Ứng dụng hỗ trợ giáo viên soạn đề thi và chấm bài");
 	           primaryStage.setResizable(false);
 	           primaryStage.show();
 	           

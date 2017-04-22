@@ -8,6 +8,7 @@ import java.util.List;
  */
 public class Question {
 	public Paragraph value;
+	public Paragraph content;
 	public List<Paragraph> answers = new ArrayList<Paragraph>();
 	public BigInteger numID;
 }

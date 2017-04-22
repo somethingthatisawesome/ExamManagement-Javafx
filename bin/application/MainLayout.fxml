@@ -9,78 +9,109 @@
 <?import javafx.scene.shape.*?>
 <?import javafx.scene.text.*?>
 
-<AnchorPane minHeight="372.0" minWidth="535.4141693115234" prefHeight="372.0" prefWidth="535.4141693115234" style=" -fx-background-color: #FFFFFF;&#10;-fx-border-color: #e2e2e2;" xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/2.2" fx:controller="application.MainController">
+<AnchorPane minHeight="372.0" minWidth="535.4141693115234" prefHeight="387.0" prefWidth="535.4141693115234" style=" -fx-background-color: #FFFFFF;&#10;-fx-border-color: #e2e2e2;" xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/2.2" fx:controller="application.MainController">
   <!-- TODO Add Nodes -->
   <children>
+    <TabPane layoutX="26.0" layoutY="73.0" prefHeight="286.0" prefWidth="498.4141845703125" tabClosingPolicy="UNAVAILABLE">
+      <tabs>
+        <Tab text="Trộn đề thi">
+          <content>
+            <AnchorPane id="Content" minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
+              <children>
+                <Pane layoutX="4.0" layoutY="14.0" prefHeight="37.0" prefWidth="493.0">
+                  <children>
+                    <TextField fx:id="pathTextField" layoutX="-1.0" layoutY="0.0" prefHeight="36.000099999997474" prefWidth="430.0" promptText="Đường dẫn tới đề thi" style="-fx-background-radius:3px 0px 0px 3px;&#10;-fx-padding: 10 50 10 20;" text="" />
+                    <ImageView fx:id="openFileButton" fitHeight="30.0" fitWidth="50.0" layoutX="389.0" layoutY="3.0" onMouseClicked="#chooseFile" pickOnBounds="true" preserveRatio="true">
+                      <image>
+                        <Image url="@../asset/20151012_561bae9e3bd57.png" />
+                      </image>
+                    </ImageView>
+                    <Button fx:id="checkFileButton" layoutX="428.0" layoutY="0.0" mnemonicParsing="false" onAction="#checkButtonClick" prefHeight="36.0" style="-fx-background-radius:0px 3px 3px 0px;" text="Kiểm tra" />
+                  </children>
+                </Pane>
+                <Pane fx:id="statusPane" layoutX="4.0" layoutY="66.0" prefHeight="29.000099999997474" prefWidth="493.0" style="-fx-background-color:#4FC064;&#10;-fx-border-color: #41a653;">
+                  <children>
+                    <ImageView fx:id="statusInfoIcon" fitHeight="15.0" fitWidth="15.0" layoutX="7.0" layoutY="8.0" pickOnBounds="true" preserveRatio="true">
+                      <image>
+                        <Image url="@../asset/ok-xxl.png" />
+                      </image>
+                    </ImageView>
+                    <Label fx:id="statusInfo" layoutX="33.0" layoutY="7.0" prefWidth="352.0" text="Success: Hoàn tất phân tích dữ liệu" textFill="WHITE" />
+                    <Hyperlink fx:id="infoDetail" layoutX="411.0" layoutY="3.0" onAction="#showDetail" text="Xem chi tiết" textFill="WHITE">
+                      <font>
+                        <Font name="System Italic" size="12.0" />
+                      </font>
+                    </Hyperlink>
+                  </children>
+                </Pane>
+                <Pane fx:id="exportExamPane" disable="false" layoutX="3.0" layoutY="109.0" prefHeight="143.0" prefWidth="492.0">
+                  <children>
+                    <TextField id="number" fx:id="numberTextField" alignment="CENTER_RIGHT" layoutX="112.0" layoutY="29.0" prefWidth="163.0" style="-fx-background-radius:3px 3px 3px 3px;" text="1" />
+                    <Label layoutX="14.0" layoutY="32.0" text="Số lượng đề thi:" />
+                    <Label layoutX="14.0" layoutY="73.0" text="Thứ tự đề thi:" />
+                    <RadioButton fx:id="letterRadioButton" layoutX="118.0" layoutY="73.0" mnemonicParsing="false" text="A,B,C,...">
+                      <toggleGroup>
+                        <ToggleGroup fx:id="type" />
+                      </toggleGroup>
+                    </RadioButton>
+                    <RadioButton fx:id="numberRadioButton" layoutX="205.0" layoutY="73.0" mnemonicParsing="false" text="1,2,3,..." toggleGroup="$type" />
+                    <Line endX="389.0" endY="0.0" layoutX="102.0" layoutY="1.0" startX="-100.0" style="-fx-background-color:#e2e2e2;">
+                      <fill>
+                        <Color blue="0.749" green="0.749" red="0.749" fx:id="x1" />
+                      </fill>
+                      <stroke>
+                        <Color blue="0.624" green="0.624" red="0.624" fx:id="x2" />
+                      </stroke>
+                    </Line>
+                    <Button layoutX="370.0" layoutY="85.0" mnemonicParsing="false" onAction="#exportRandomizeExam" prefHeight="50.9609375" prefWidth="116.0" text="Trộn đề thi" />
+                    <Button layoutX="275.0" layoutY="29.0" mnemonicParsing="false" onAction="#increaseNumber" prefHeight="22.0" prefWidth="30.0" style="-fx-background-radius:3px 0px 0px 3px;" text="+" />
+                    <Button layoutX="305.0" layoutY="29.0" mnemonicParsing="false" onAction="#decreaseNumber" prefHeight="22.0" prefWidth="30.0" style="-fx-background-radius:0px 3px 3px 0px;" text="-" />
+                  </children>
+                </Pane>
+              </children>
+            </AnchorPane>
+          </content>
+        </Tab>
+        <Tab text="Chấm bài">
+          <content>
+            <AnchorPane id="Content" minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
+              <children>
+                <Pane layoutX="14.0" layoutY="28.0" prefHeight="200.0" prefWidth="457.0">
+                  <children>
+                    <ImageView fitHeight="166.5" fitWidth="222.0" layoutX="148.0" layoutY="1.0" pickOnBounds="true" preserveRatio="true">
+                      <image>
+                        <Image url="@../asset/warning.png" />
+                      </image>
+                    </ImageView>
+                    <Label layoutX="86.0" layoutY="158.0" text="Đang trong giai đoạn phát triển">
+                      <font>
+                        <Font size="23.0" />
+                      </font>
+                    </Label>
+                  </children>
+                </Pane>
+              </children>
+            </AnchorPane>
+          </content>
+        </Tab>
+      </tabs>
+    </TabPane>
     <ImageView id="LogoImageView" fx:id="logoImageView" fitHeight="73.54000091552734" fitWidth="126.7931032556002" layoutX="14.0" layoutY="14.0" pickOnBounds="true" preserveRatio="true">
       <image>
         <Image url="@../asset/2.png" />
       </image>
     </ImageView>
-    <Pane layoutX="28.0" layoutY="110.0" prefHeight="37.0" prefWidth="493.0">
-      <children>
-        <TextField fx:id="pathTextField" layoutX="1.0" layoutY="0.0" prefHeight="36.000099999997474" prefWidth="430.0" promptText="Đường dẫn tới đề thi" style="-fx-background-radius:3px 0px 0px 3px;&#10;-fx-padding: 10 50 10 20;" text="" />
-        <ImageView fx:id="openFileButton" fitHeight="30.0" fitWidth="50.0" layoutX="389.0" layoutY="3.0" onMouseClicked="#chooseFile" pickOnBounds="true" preserveRatio="true">
-          <image>
-            <Image url="@../asset/20151012_561bae9e3bd57.png" />
-          </image>
-        </ImageView>
-        <Button fx:id="checkFileButton" layoutX="428.0" layoutY="0.0" mnemonicParsing="false" onAction="#checkButtonClick" prefHeight="36.0" style="-fx-background-radius:0px 3px 3px 0px;" text="Kiểm tra" />
-      </children>
-    </Pane>
-    <Pane fx:id="statusPane" layoutX="28.0" layoutY="155.0" prefHeight="29.000099999997474" prefWidth="493.0" style="-fx-background-color:#4FC064;&#10;-fx-border-color: #41a653;">
-      <children>
-        <ImageView fx:id="statusInfoIcon" fitHeight="15.0" fitWidth="15.0" layoutX="7.0" layoutY="8.0" pickOnBounds="true" preserveRatio="true">
-          <image>
-            <Image url="@../asset/ok-xxl.png" />
-          </image>
-        </ImageView>
-        <Label fx:id="statusInfo" layoutX="33.0" layoutY="7.0" prefWidth="352.0" text="Success: Hoàn tất phân tích dữ liệu" textFill="WHITE" />
-        <Hyperlink fx:id="infoDetail" layoutX="411.0" layoutY="3.0" onAction="#showDetail" text="Xem chi tiết" textFill="WHITE">
-          <font>
-            <Font name="System Italic" size="12.0" />
-          </font>
-        </Hyperlink>
-      </children>
-    </Pane>
-    <Pane disable="false" layoutX="30.0" layoutY="197.0" prefHeight="143.0" prefWidth="492.0">
-      <children>
-        <TextField id="number" fx:id="numberTextField" alignment="CENTER_RIGHT" layoutX="112.0" layoutY="29.0" prefWidth="163.0" style="-fx-background-radius:3px 3px 3px 3px;" text="1" />
-        <Label layoutX="14.0" layoutY="32.0" text="Số lượng đề thi:" />
-        <Label layoutX="14.0" layoutY="73.0" text="Thứ tự đề thi:" />
-        <RadioButton fx:id="letterRadioButton" layoutX="118.0" layoutY="73.0" mnemonicParsing="false" text="A,B,C,...">
-          <toggleGroup>
-            <ToggleGroup fx:id="type" />
-          </toggleGroup>
-        </RadioButton>
-        <RadioButton fx:id="numberRadioButton" layoutX="205.0" layoutY="73.0" mnemonicParsing="false" text="1,2,3,..." toggleGroup="$type" />
-        <Line endX="389.0" endY="0.0" layoutX="102.0" layoutY="1.0" startX="-100.0" style="-fx-background-color:#e2e2e2;">
-          <fill>
-            <Color blue="0.749" green="0.749" red="0.749" fx:id="x1" />
-          </fill>
-          <stroke>
-            <Color blue="0.624" green="0.624" red="0.624" fx:id="x2" />
-          </stroke>
-        </Line>
-        <Button layoutX="370.0" layoutY="85.0" mnemonicParsing="false" onAction="#exportRandomizeExam" prefHeight="50.9609375" prefWidth="116.0" text="Trộn đề thi" />
-        <Label layoutX="14.0" layoutY="112.0" text="Header:" />
-        <TextField id="headerfFilePath" fx:id="headerFilePath" editable="true" layoutX="112.0" layoutY="108.0" prefHeight="25.0" prefWidth="150.2069091796875" promptText="Đường dẫn tới header" style="-fx-background-radius:3px 0px 0px 3px;" text="" />
-        <Button layoutX="261.0" layoutY="108.0" mnemonicParsing="false" onAction="#loadHeaderFile" prefHeight="25.0" prefWidth="74.0" style="-fx-background-radius:0px 3px 3px 0px;" text="Chọn File" />
-        <Button layoutX="275.0" layoutY="29.0" mnemonicParsing="false" onAction="#increaseNumber" prefHeight="22.0" prefWidth="30.0" style="-fx-background-radius:3px 0px 0px 3px;" text="+" />
-        <Button layoutX="305.0" layoutY="29.0" mnemonicParsing="false" onAction="#decreaseNumber" prefHeight="22.0" prefWidth="30.0" style="-fx-background-radius:0px 3px 3px 0px;" text="-" />
-      </children>
-    </Pane>
-    <Line endX="398.0" endY="0.0" fill="$x1" layoutX="128.0" layoutY="351.0" startX="-99.0" startY="3.0" stroke="$x2" style="-fx-background-color:#ededed;" />
-    <Label layoutX="406.0" layoutY="356.0" text="ĐỒ ÁN CHUYÊN NGÀNH A" textFill="#bfbfbf">
+    <Line endX="398.0" endY="0.0" fill="$x1" layoutX="128.0" layoutY="359.0" startX="-99.0" startY="3.0" stroke="$x2" style="-fx-background-color:#ededed;" />
+    <Label layoutX="406.0" layoutY="364.0" text="ĐỒ ÁN CHUYÊN NGÀNH A" textFill="#bfbfbf">
       <font>
         <Font name="System Italic" size="10.0" />
       </font>
     </Label>
-    <Button fx:id="helpButton" layoutX="453.0" layoutY="14.0" mnemonicParsing="false" prefHeight="30.0" prefWidth="71.0" style="-fx-background-color:white;&#10;-fx-border-color:#e0e0e0;&#10;-fx-border-radius:30px;" text="Hỗ trợ" textFill="GREY">
+    <Button fx:id="helpButton" disable="true" layoutX="453.0" layoutY="14.0" mnemonicParsing="false" prefHeight="30.0" prefWidth="71.0" style="" text="Hỗ trợ" textFill="GREY">
       <font>
         <Font name="System Bold" size="12.0" fx:id="x3" />
       </font>
     </Button>
-    <Button id="helpButton" fx:id="settingButton" font="$x3" layoutX="365.0" layoutY="14.0" mnemonicParsing="false" onAction="#showSettingForm" prefHeight="30.0" prefWidth="71.0" style="-fx-background-color:white;&#10;-fx-border-color:#e0e0e0;&#10;-fx-border-radius:30px;" text="Cài đặt" textFill="GREY" />
+    <Button id="helpButton" fx:id="settingButton" font="$x3" layoutX="365.0" layoutY="14.0" mnemonicParsing="false" onAction="#showSettingForm" prefHeight="30.0" prefWidth="71.0" style="" text="Cài đặt" textFill="BLACK" />
   </children>
 </AnchorPane>

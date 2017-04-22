@@ -21,7 +21,7 @@ public class Gobal {
 	public final static Color  _BLUE = Color.web("#0070C0");
 	public final static Color  _DARKBLUE = Color.web("#002060");
 	public final static Color  _PURPLE = Color.web("#7030A0");
-	public static List<Paragraph> paragraph;
+	public static List<Paragraph> paragraph = new ArrayList<Paragraph>();
 	public static int status = 0;
 	public static String path="";
 	public static String statusInfo="";
@@ -33,4 +33,19 @@ public class Gobal {
 	public static String _staticQuestion = "Light Blue";
 	public static String _isCorrectAns = "Red";
 	public static String headerpath="";
+	//Header init
+	public static List<XWPFParagraph> header = new ArrayList<XWPFParagraph>();
+	public static List<XWPFParagraph> essay = new ArrayList<XWPFParagraph>();
+	public static int headersize = 0;
+	public static final String _NUMBRFORMAT = "";
+	public static final String _LOWLETTERFORMAT = "";
+	public static int textbox_pos = -1;
+	public static void reset()
+	{
+			Gobal.paragraph.clear();
+			Gobal.header.clear();
+			Gobal.essay.clear();
+			Gobal.headersize = 0;
+			Gobal.textbox_pos = -1;
+	}
 }

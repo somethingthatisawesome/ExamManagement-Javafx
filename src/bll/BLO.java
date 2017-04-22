@@ -1,5 +1,9 @@
 package bll;
 
+import javafx.scene.control.Alert;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.Alert.AlertType;
+import javafx.scene.control.ButtonBar.ButtonData;
 import javafx.scene.paint.Color;
 import java.awt.Desktop;
 import java.io.BufferedWriter;
@@ -18,6 +22,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -67,6 +72,8 @@ public class BLO {
 	private String tempPath ;
 	private FileInputStream fis = null;
 	private XWPFDocument xdoc = null;
+	static private boolean yestoall =false;
+	//
 	public List<List<Paragraph>> Exams = new ArrayList<List<Paragraph>>();
 	BigInteger restart;
 	BigInteger cont;
@@ -75,7 +82,7 @@ public class BLO {
 	 * Tạo xuất ra thông tin bị sai sót trong cấu trúc đề thi vào tập tin đang sử dụng
 	 * các thông tin bị sai sót sẽ được đánh dấu hightlight
 	 */
-	public void exportTempExam(List<Paragraph> lpr,String path)
+	public void exportTempExam(List<Paragraph> lpr,String path,List<XWPFParagraph> header,List<XWPFParagraph>essay)
 	{
 		try {
 			xdoc = new XWPFDocument(new FileInputStream(tempPath));
@@ -87,13 +94,24 @@ public class BLO {
 		 for(int i=0;i<size;i++)
 				xdoc.removeBodyElement(0);
         int pos;
+        for(XWPFParagraph pr:header) {
+        	xdoc.createParagraph();
+        	 pos = xdoc.getParagraphs().size()-1;
+
+        	xdoc.setParagraph(pr, pos);
+        }
         for(Paragraph pr:lpr) {
         	xdoc.createParagraph();
         	 pos = xdoc.getParagraphs().size()-1;
 
         	xdoc.setParagraph(pr.value, pos);
         }
-       
+        for(XWPFParagraph pr:essay) {
+        	xdoc.createParagraph();
+        	 pos = xdoc.getParagraphs().size()-1;
+
+        	xdoc.setParagraph(pr, pos);
+        }
         try {
         	
         	exportDocument(path, xdoc);
@@ -183,15 +201,41 @@ public class BLO {
 	       String numbfmr =null;
 	       XWPFParagraph first = paragraphList.get(0);
 	       numbfmr = first.getNumFmt();
-	       int qusindex=0;
-	       int i=0;
+
+	       int headersize = 0;
+	       
 	       for(XWPFParagraph pr:paragraphList)
 	       {
+	    	   Gobal.header.add(pr);
+	    	   if(pr.getText().toLowerCase().contains("phần thi trắc nghiệm"))
+	    	   {
+	    		  
+	    		   break;
+	    	   }
+	    	   headersize++;
+	    	   
+	       }
+	       
+	       Gobal.headersize = headersize;
+	       //headersize + 1
+
+	       int size = paragraphList.size();
+	       System.out.println(headersize+""+size);
+	       if(headersize==size)
+	       {
+	    	   headersize = -1;
+	    	   Gobal.headersize = 0;
+	       }
+	       for(int i=headersize+1;i<size;i++)
+	       {
+	    	   XWPFParagraph pr = paragraphList.get(i);
+	    	   if(pr.getText().toLowerCase().contains("phần thi tự luận"))
+	    		   break;
 	    	   Paragraph lpr = new Paragraph();
 	    	   lpr.value = pr;
-	    	   
 	    	   if(pr.getNumFmt()==numbfmr)
 	    	   {
+	    	     
 	    		   lpr.isQuestion = true;
 	    		   String color  = pr.getRuns().get(0).getColor();
 	    		   System.out.println(color);
@@ -210,7 +254,6 @@ public class BLO {
 		    			   lpr.isStatic=true;
 		    		   }
 	    		   }
-	    		  qusindex = i;
 	    	   }
 	    	   else
 	    	   {
@@ -237,14 +280,19 @@ public class BLO {
 		    	    	   
 		    		   }
 	    		   }
-	    		   lpr.belongtoQuestion = qusindex;
 	    	   }
-
+	    	   
 	    	   prList.add(lpr);
-	    	   i++;
+	    	   System.out.println(lpr.value.getText());
 	       }
 	
 	       Gobal.paragraph = prList;
+	       int pos = Gobal.header.size()+Gobal.paragraph.size()-1;
+	       for(int i=pos;i<size;i++)
+	       {
+	    	   XWPFParagraph pr = paragraphList.get(i);
+	    	   Gobal.essay.add(pr);
+	       }
 	       
 	    return 0;
 	}
@@ -383,7 +431,7 @@ public class BLO {
 	/*
 	 * Xuất văn bản đã được trộn
 	 */
-	private int exportRandomizeExam(List<Paragraph> prs,String path,String headerpath,String id)
+	private int exportRandomizeExam(List<Paragraph> prs,String path,String id)
 	{
 		List<Paragraph> lpr =randomizeParagraph(prs);
 		clearAllHighLight(lpr);
@@ -409,22 +457,14 @@ public class BLO {
 		}*/
         int pos;
         String name = "";
+        if(Gobal.headersize!=0)
         try {
-			XWPFDocument header = loadHeader(headerpath);
-			List<XWPFPictureData> pics = header.getAllPictures();
-			XWPFPictureData logo = null;
-			for(XWPFPictureData pic:pics)
+        	List<XWPFParagraph> hpr = null;
+			hpr = new ArrayList<XWPFParagraph>();
+			for(XWPFParagraph pr:Gobal.header)
 			{
-				try {
-					xdoc.addPictureData(pic.getData(),pic.getPictureType());
-					logo = pic;
-				} catch (InvalidFormatException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
+				hpr.add(pr);
 			}
-			
-			List<XWPFParagraph> hpr = header.getParagraphs();
 			//Change text box
 			 CTR ctr = hpr.get(0).getCTP().getRArray(0);
 			    InputSource is = new InputSource(new StringReader(ctr.xmlText()));
@@ -435,15 +475,18 @@ public class BLO {
 		        int sizel = elements.getLength();
 		        System.out.println(elements.getLength());
 		        Node element = null;
+		        if(Gobal.textbox_pos==-1)
 		        for(int i=0;i<sizel;i++)
 		        {
 		        	element = elements.item(i);
 		        	if(element.getTextContent().equals("A"))
 		        	{
-		        		element.setTextContent(id);
+		        		Gobal.textbox_pos = i;
+		        		break;
 		        	}
 		        	System.out.println(element.getTextContent());
 		        }
+		       elements.item(Gobal.textbox_pos).setTextContent(id);
 		        
 		      XmlObject xobj = XmlObject.Factory.parse(toString(doc));
 		      ctr.set(xobj);
@@ -453,15 +496,6 @@ public class BLO {
 				pos = xdoc.getParagraphs().size()-1;
 				xdoc.setParagraph(pr, pos);
 			}
-			
-			/*
-			 * 
-			InputStream logois = new ByteArrayInputStream(logo.getData());
-			InputStream pic = new FileInputStream("C:\\Users\\trihm\\Desktop\\Capture.PNG");
-			XWPFParagraph t = xdoc.createParagraph();
-			XWPFRun r = t.createRun();
-			r.setText("fawefawef");
-			r.addPicture(pic, Document.PICTURE_TYPE_PNG, "1", 200, 100);*/
 		} catch (Exception e1) {
 			// TODO Auto-generated catch block
 			//e1.printStackTrace();
@@ -472,6 +506,12 @@ public class BLO {
         	xdoc.createParagraph();
         	pos = xdoc.getParagraphs().size()-1;
         	xdoc.setParagraph(pr.value, pos);
+        }
+        for(XWPFParagraph e:Gobal.essay)
+        {
+        	xdoc.createParagraph();
+        	pos = xdoc.getParagraphs().size()-1;
+        	xdoc.setParagraph(e, pos);
         }
         //TODO thêm đề thi vào biến tạm
         Exams.add(lpr);
@@ -489,28 +529,98 @@ public class BLO {
 	/*
 	 * Xuất văn bản
 	 */
-	public void exportExams(List<Paragraph> lpr, String path, int number, boolean b,String headerpath) {
+	public void exportExams(List<Paragraph> lpr, String path, int number, boolean b) {
 		Exams.clear();
 		if(b==false)
 		{
+			String st="";
 			for(int i=1;i<=number;i++)
 			{
-				exportRandomizeExam(lpr, path+"_"+i+".docx",headerpath,Integer.toString(i));
+				st = path+"_"+i+".docx";
+				int check  =0;
+				if(yestoall==false)
+					check = checkFileExist(st);
+				if(check==2) yestoall=true;
+				if(check==3) continue;
+				exportRandomizeExam(lpr, st,Integer.toString(i));
 			}
 			String tempPath = path.substring(0,path.lastIndexOf("\\"));
-			exportDocument(tempPath+"\\Đáp án.docx",exportAnswer(false));
-			exportExcel(tempPath+"\\Đáp án.xlsx", exportAnswerExcel(false));
+
+			if(yestoall==true)
+			{
+				exportDocument(tempPath+"\\Đáp án.docx",exportAnswer(false));
+				exportExcel(tempPath+"\\Đáp án.xlsx", exportAnswerExcel(false));
+			}
+			else
+			{
+				int checkAnsDoc = checkFileExist(tempPath+"\\Đáp án.docx");
+				if(checkAnsDoc==2)
+				{
+					yestoall=true;
+				}
+				if(checkAnsDoc!=3||yestoall==true)
+				{
+					exportDocument(tempPath+"\\Đáp án.docx",exportAnswer(false));
+				}
+				
+				if(yestoall==false)
+				{
+					int checkAnsExcel = checkFileExist(tempPath+"\\Đáp án.xlsx");
+					if(checkAnsExcel!=3)
+					{
+						exportExcel(tempPath+"\\Đáp án.xlsx", exportAnswerExcel(false));
+					}
+				}
+			}
 		}else
 		{
+			String st="";
 			for(int i=1;i<=number;i++)
 			{
+				
+				
 				String t = convertNumbertoAphabet(i);
-				exportRandomizeExam(lpr, path+"_"+t +".docx",headerpath,t);
+				st = path+"_"+t +".docx";
+				int check  =0;
+				if(yestoall==false)
+					check = checkFileExist(st);
+				if(check==2) yestoall=true;
+				if(check==3) continue;
+				
+				exportRandomizeExam(lpr, st,t);
 			}
 			String tempPath = path.substring(0,path.lastIndexOf("\\"));
-			exportDocument(tempPath+"\\Đáp án.docx",exportAnswer(true));
-			exportExcel(tempPath+"\\Đáp án.xlsx", exportAnswerExcel(true));
+
+			if(yestoall==true)
+			{
+				exportDocument(tempPath+"\\Đáp án.docx",exportAnswer(true));
+				exportExcel(tempPath+"\\Đáp án.xlsx", exportAnswerExcel(true));
+			}
+			else
+			{
+				int checkAnsDoc = checkFileExist(tempPath+"\\Đáp án.docx");
+				if(checkAnsDoc==2)
+				{
+					yestoall=true;
+				}
+				if(checkAnsDoc!=3||yestoall==true)
+				{
+					exportDocument(tempPath+"\\Đáp án.docx",exportAnswer(true));
+				}
+				
+				if(yestoall==false)
+				{
+					int checkAnsExcel = checkFileExist(tempPath+"\\Đáp án.xlsx");
+					if(checkAnsExcel!=3)
+					{
+						exportExcel(tempPath+"\\Đáp án.xlsx", exportAnswerExcel(true));
+					}
+				}
+			}
+			
+			
 		}
+		yestoall = false;
 		
 	}
 	//TODO nạp dữ liệu từ format.xml
@@ -780,4 +890,32 @@ public class BLO {
 	    transformer.transform(domSource, sr);
 	   return sw.toString();
 	  }
+	private int checkFileExist(String path)
+	{
+		File f = new File(path);
+		ButtonType yes = new ButtonType("Ghi đè",ButtonData.OK_DONE);
+		ButtonType yestoall = new ButtonType("Ghi đè tất cả",ButtonData.OK_DONE);
+		ButtonType skip = new ButtonType("Bỏ qua",ButtonData.OK_DONE);
+		Alert alert = new Alert(AlertType.WARNING,"",yes,yestoall,skip);
+		alert.setTitle("Tập tin đã tồn tại");
+		
+		alert.setContentText("Tập tin "+f.getName()+" đã tồn tại.");
+		if(f.exists() && !f.isDirectory()) { 
+			Optional<ButtonType> result = alert.showAndWait();
+			if(result.get()==yes)
+			{
+				return 1;
+			}
+			if(result.get()==yestoall)
+			{
+				return 2;
+			}
+			if(result.get()==skip)
+			{
+				return 3;
+			}
+		}
+		return 0;
+	}
 }
+
