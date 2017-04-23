@@ -131,6 +131,7 @@ public class MainController implements Initializable {
 	 */
 	public void checkButtonClick()
 	{
+		Gobal.reset();
 		//check file
 		statusPane.setVisible(false);
 		String filepath  = pathTextField.getText();
@@ -194,7 +195,9 @@ public class MainController implements Initializable {
 		};
 		if(fileStatus==2)
 		{
+			
 			showErrorStatus(Gobal.statusInfo);
+			exportExamPane.setDisable(true);
 		};
 	}
 	/*
@@ -350,9 +353,9 @@ public class MainController implements Initializable {
 			alert.showAndWait();
 			return;
 		}
-		String _editpath = filePath.substring(0, filePath.lastIndexOf('.'))+"_edited.docx"; 
+		String _editpath = filePath; 
 		blo.exportTempExam(Gobal.paragraph, _editpath,Gobal.header,Gobal.essay);
-		blo.openTempExam(_editpath);
+		blo.openTempExam("./src/asset/headers/temp.docx");
 	}
 	/*
 	 * Form cài đặt 

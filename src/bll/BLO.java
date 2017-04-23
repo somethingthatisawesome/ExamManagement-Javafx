@@ -85,7 +85,7 @@ public class BLO {
 	public void exportTempExam(List<Paragraph> lpr,String path,List<XWPFParagraph> header,List<XWPFParagraph>essay)
 	{
 		try {
-			xdoc = new XWPFDocument(new FileInputStream(tempPath));
+			xdoc = new XWPFDocument(new FileInputStream(path));
 		} catch (IOException e1) {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
@@ -114,7 +114,7 @@ public class BLO {
         }
         try {
         	
-        	exportDocument(path, xdoc);
+        	exportDocument("./src/asset/headers/temp.docx", xdoc);
         	fis.close();
         } catch(Exception e) {
         	e.printStackTrace();
@@ -129,7 +129,8 @@ public class BLO {
 	{
 		File f = new File(path);
 		try {
-			Desktop.getDesktop().open(f);
+			String cmd = "cmd /C start winword.exe /t\"" + f.getAbsolutePath() + "\"";
+	        Process child = Runtime.getRuntime().exec(cmd);
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -156,7 +157,6 @@ public class BLO {
 	 */
 		private void clearAllHighLight(List<Paragraph> lpr)
 		{
-		
 			for(Paragraph pr:lpr)
 			{
 				clearHighLight(pr.value);
@@ -285,7 +285,7 @@ public class BLO {
 	    	   prList.add(lpr);
 	    	   System.out.println(lpr.value.getText());
 	       }
-	
+	       clearAllHighLight(prList);
 	       Gobal.paragraph = prList;
 	       int pos = Gobal.header.size()+Gobal.paragraph.size()-1;
 	       for(int i=pos;i<size;i++)
@@ -773,14 +773,16 @@ public class BLO {
 	 */
 	private String convertNumbertoAphabet(int number)
 	{
-		int count = (number / 26)+1;
-		String str = "";
-		for(int i=0;i<count;i++)
-		{
-			str += Character.toString((char) (number%26+64));
-			number-=26;
-		}
-		return str;
+		 String st = "";
+		    int tempnumber = number;
+		    while (tempnumber > 0)
+		    {
+		        int currentLetterNumber = (tempnumber - 1) % 26;
+		        char currentLetter = (char)(currentLetterNumber + 65);
+		        st = currentLetter + st;
+		        tempnumber = (tempnumber - (currentLetterNumber + 1)) / 26;
+		    }
+		    return st;
 	}
 	/*
 	 * Xuất đáp án dạng Bảng tính Excel
