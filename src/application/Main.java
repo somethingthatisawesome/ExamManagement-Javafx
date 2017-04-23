@@ -13,16 +13,9 @@ public class Main extends Application {
 	@Override
 	public void start(Stage primaryStage) {
 		try {
-			/*
-			BorderPane root = new BorderPane();
-			Scene scene = new Scene(root,400,400);
-			scene.getStylesheets().add(getClass().getResource("application.css").toExternalForm());
-			primaryStage.setScene(scene);
-			primaryStage.show();*/
 			Main.class.getResource("/asset");
 	           Parent root = FXMLLoader.load(getClass()
 	                   .getResource("MainLayout.fxml"));
-	           //primaryStage.initStyle(StageStyle.UNDECORATED);
 	           primaryStage.setScene(new Scene(root));
 	           primaryStage.setTitle("Ứng dụng hỗ trợ giáo viên soạn đề thi và chấm bài");
 	           primaryStage.setResizable(false);

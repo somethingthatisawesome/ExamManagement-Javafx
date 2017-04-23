@@ -9,7 +9,7 @@
 <?import javafx.scene.shape.*?>
 <?import javafx.scene.text.*?>
 
-<AnchorPane minHeight="372.0" minWidth="535.4141693115234" prefHeight="387.0" prefWidth="535.4141693115234" style=" -fx-background-color: #FFFFFF;&#10;-fx-border-color: #e2e2e2;" xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/2.2" fx:controller="application.MainController">
+<AnchorPane minHeight="372.0" minWidth="535.4141693115234" prefHeight="387.0" prefWidth="535.4141693115234" style=" -fx-background-color: #FFFFFF;&#10;-fx-border-color: #e2e2e2;" visible="true" xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/2.2" fx:controller="application.MainController">
   <!-- TODO Add Nodes -->
   <children>
     <TabPane layoutX="26.0" layoutY="73.0" prefHeight="286.0" prefWidth="498.4141845703125" tabClosingPolicy="UNAVAILABLE">
@@ -23,10 +23,10 @@
                     <TextField fx:id="pathTextField" layoutX="-1.0" layoutY="0.0" prefHeight="36.000099999997474" prefWidth="430.0" promptText="Đường dẫn tới đề thi" style="-fx-background-radius:3px 0px 0px 3px;&#10;-fx-padding: 10 50 10 20;" text="" />
                     <ImageView fx:id="openFileButton" fitHeight="30.0" fitWidth="50.0" layoutX="389.0" layoutY="3.0" onMouseClicked="#chooseFile" pickOnBounds="true" preserveRatio="true">
                       <image>
-                        <Image url="@../asset/20151012_561bae9e3bd57.png" />
+                        <Image url="@../asset/Add%20Folder-48.png" />
                       </image>
                     </ImageView>
-                    <Button fx:id="checkFileButton" layoutX="428.0" layoutY="0.0" mnemonicParsing="false" onAction="#checkButtonClick" prefHeight="36.0" style="-fx-background-radius:0px 3px 3px 0px;" text="Kiểm tra" />
+                    <Button fx:id="checkFileButton" defaultButton="true" layoutX="428.0" layoutY="0.0" mnemonicParsing="false" onAction="#checkButtonClick" prefHeight="36.0" style="-fx-background-radius:0px 3px 3px 0px;" text="Kiểm tra" underline="false" wrapText="false" />
                   </children>
                 </Pane>
                 <Pane fx:id="statusPane" layoutX="4.0" layoutY="66.0" prefHeight="29.000099999997474" prefWidth="493.0" style="-fx-background-color:#4FC064;&#10;-fx-border-color: #41a653;">
@@ -107,7 +107,7 @@
         <Font name="System Italic" size="10.0" />
       </font>
     </Label>
-    <Button fx:id="helpButton" disable="true" layoutX="453.0" layoutY="14.0" mnemonicParsing="false" prefHeight="30.0" prefWidth="71.0" style="" text="Hỗ trợ" textFill="GREY">
+    <Button fx:id="helpButton" cancelButton="false" defaultButton="false" disable="false" focusTraversable="true" layoutX="453.0" layoutY="14.0" mnemonicParsing="false" onAction="#showSupportForm" prefHeight="30.0" prefWidth="71.0" style="" text="Hỗ trợ" textFill="BLACK" visible="true">
       <font>
         <Font name="System Bold" size="12.0" fx:id="x3" />
       </font>

@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.image.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.text.*?>
+
+<AnchorPane prefHeight="300.0" prefWidth="500.0" xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/2.2" fx:controller="application.AboutUsController">
+  <!-- TODO Add Nodes -->
+  <children>
+    <ImageView fitHeight="95.0" fitWidth="126.66666666666666" layoutX="27.0" layoutY="15.0" pickOnBounds="true" preserveRatio="true">
+      <image>
+        <Image url="@../asset/2.png" />
+      </image>
+    </ImageView>
+    <Label layoutX="54.0" layoutY="84.0" prefHeight="30.0" prefWidth="418.0" text="Ứng dụng hỗ trợ giáo viên soạn đề thi và chấm bài" textAlignment="CENTER" underline="false" wrapText="true">
+      <font>
+        <Font size="18.0" />
+      </font>
+    </Label>
+    <Label layoutX="66.0" layoutY="150.0" text="Giảng Viên Hướng dẫn:" />
+    <Label layoutX="67.0" layoutY="194.0" text="Sinh viên thực hiện:" />
+    <Label layoutX="211.0" layoutY="150.0" text="Nguyễn Thị Thanh" />
+    <Label layoutX="211.0" layoutY="214.0" text="Huỳnh Minh Trí" />
+    <Label layoutX="210.0" layoutY="193.0" text="Nguyễn Mạnh Cường" />
+    <Button fx:id="closeButton" cancelButton="true" layoutX="379.0" layoutY="248.0" mnemonicParsing="false" onAction="#closeButtonAction" prefHeight="29.999900000002526" prefWidth="81.99990000000253" text="Trờ về" />
+  </children>
+</AnchorPane>

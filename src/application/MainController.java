@@ -33,6 +33,7 @@ import javafx.scene.control.RadioButton;
 import javafx.scene.control.TextField;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.control.Tooltip;
+import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
@@ -277,6 +278,15 @@ public class MainController implements Initializable {
 	 */
 	private void showSuccessStatus()
 	{
+
+		try {
+			FileInputStream fis = new FileInputStream(new File("./src/asset/ok-xxl.png"));
+			Image img = new Image(fis);
+			statusInfoIcon.setImage(img);
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		statusPane.setStyle("-fx-background-color:#4FC064;");
 		statusInfo.setText("Hoàn tất phân tích dữ liệu");
 		infoDetail.setVisible(false);
@@ -287,6 +297,14 @@ public class MainController implements Initializable {
 	 */
 	private void showErrorStatus(String error)
 	{
+		try {
+			FileInputStream fis = new FileInputStream(new File("./src/asset/x-mark-3-512.png"));
+			Image img = new Image(fis);
+			statusInfoIcon.setImage(img);
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		statusPane.setStyle("-fx-background-color:#D64A49;");
 		statusInfo.setText("Lỗi: "+error);
 		infoDetail.setVisible(false);
@@ -297,6 +315,16 @@ public class MainController implements Initializable {
 	 */
 	private void showWarningStatus()
 	{
+		
+		try {
+			FileInputStream fis = new FileInputStream(new File("./src/asset/white-error-256.png"));
+			Image img = new Image(fis);
+			statusInfoIcon.setImage(img);
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
 		statusPane.setStyle("-fx-background-color:#EBC058;");
 		statusInfo.setText("Cấu trúc đề thi bị sai sót");
 		infoDetail.setVisible(true);
@@ -341,6 +369,25 @@ public class MainController implements Initializable {
             //stage.initStyle(StageStyle.UNDECORATED);
             stage.setResizable(false);
             stage.setTitle("Cài Đặt");
+            stage.setScene(new Scene(root));  
+            stage.showAndWait();;
+            loadFormat();
+          }
+	  catch(Exception e)
+	  {
+		  e.printStackTrace();
+	  }
+	}
+	public void showSupportForm()
+	{
+		try{
+            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("SupportLayout.fxml"));
+            Parent root = (Parent) fxmlLoader.load();
+            Stage stage = new Stage();
+            stage.initModality(Modality.APPLICATION_MODAL);
+            //stage.initStyle(StageStyle.UNDECORATED);
+            stage.setResizable(false);
+            stage.setTitle("Hỗ trợ");
             stage.setScene(new Scene(root));  
             stage.showAndWait();;
             loadFormat();
